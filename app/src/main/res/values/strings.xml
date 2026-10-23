@@ -1,0 +1,53 @@
+<resources>
+    <string name="app_name">Puzzivo</string>
+
+    <!-- General Navigation & Actions -->
+    <string name="nav_back">Back</string>
+    <string name="nav_settings">Settings</string>
+    <string name="action_restart">Restart</string>
+    <string name="action_main_menu">Main Menu</string>
+    <string name="action_play_again">Play Again</string>
+    <string name="action_leave">Leave</string>
+    <string name="action_cancel">Cancel</string>
+
+    <!-- Home Screen -->
+    <string name="home_todays_pick">TODAY\'S PICK</string>
+    <string name="home_daily_streak">Streak</string>
+    <string name="home_games_played">Games Played</string>
+    <string name="home_select_game">Choose a Mini-Game</string>
+
+    <!-- Game Names -->
+    <string name="game_number_merge">Number Merge</string>
+    <string name="game_memory_match">Memory Match</string>
+    <string name="game_quick_math">Quick Math</string>
+    <string name="game_word_search">Word Search</string>
+
+    <!-- Settings Screen -->
+    <string name="settings_title">Settings</string>
+    <string name="settings_preferences">Preferences</string>
+    <string name="settings_sound_effects">Sound Effects</string>
+    <string name="settings_sound_desc">Play audio cues during gameplay</string>
+    <string name="settings_haptics">Haptic Feedback</string>
+    <string name="settings_haptics_desc">Vibrate on key actions and matches</string>
+    <string name="settings_spread_word">Spread the Word</string>
+    <string name="settings_share_app">📲 Share Puzzivo with Friends</string>
+    <string name="settings_rate_app">⭐ Rate &amp; Review on Play Store</string>
+    <string name="settings_about_data">About &amp; Data</string>
+    <string name="settings_privacy_policy">🔒 Privacy Policy</string>
+    <string name="settings_support">📧 Support &amp; Contact</string>
+    <string name="settings_reset_data">🗑️ Reset High Scores &amp; Progress</string>
+
+    <!-- Dialogs -->
+    <string name="dialog_reset_title">Reset All Progress?</string>
+    <string name="dialog_reset_message">This will permanently clear all your high scores, move records, daily streaks, and solved puzzle history.</string>
+    <string name="dialog_reset_confirm">Reset Data</string>
+    <string name="dialog_leave_title">Leave Game?</string>
+    <string name="dialog_leave_message">Are you sure you want to leave your current run?</string>
+    <string name="dialog_new_best">🎉 NEW PERSONAL BEST!</string>
+
+    <!-- Reward Buttons -->
+    <string name="hint_undo">↩️ Undo Last Move (Ad)</string>
+    <string name="hint_reveal_pair">🔍 Reveal Pair (Ad)</string>
+    <string name="hint_add_time">⏳ +15 Seconds (Ad)</string>
+    <string name="hint_reveal_word">💡 Reveal Word (Ad)</string>
+</resources>

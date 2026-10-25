@@ -2,6 +2,7 @@ package com.tds.puzzivo.core.storage
 
 import android.content.Context
 import androidx.datastore.core.DataStore
+import androidx.datastore.core.handlers.ReplaceFileCorruptionHandler
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
@@ -11,18 +12,26 @@ import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.tds.puzzivo.core.model.GameType
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
+import java.io.IOException
+import java.time.Clock
 import java.time.LocalDate
 
-private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "puzzivo_prefs")
+private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(
+    name = "puzzivo_prefs",
+    corruptionHandler = ReplaceFileCorruptionHandler { androidx.datastore.preferences.core.emptyPreferences() }
+)
 
 data class UserPreferences(
     val numberMergeBestScore: Int = 0,
     val memoryMatchBestMoves: Int = 0,
     val memoryMatchBestTime: Int = 0,
     val quickMathBestScore: Int = 0,
+    val wordSearchCurrentIndex: Int = 0,
     val wordSearchCompletedIndex: Int = 0,
     val wordSearchSolvedIds: Set<String> = emptySet(),
+    val seenInstructionIds: Set<String> = emptySet(),
     val soundEnabled: Boolean = true,
     val hapticsEnabled: Boolean = true,
     val todayPickLastDate: String = "",
@@ -33,15 +42,20 @@ data class UserPreferences(
     val totalGamesPlayed: Int = 0
 )
 
-class PreferencesRepository(private val context: Context) {
+class PreferencesRepository(
+    private val context: Context,
+    private val clock: Clock = Clock.systemDefaultZone()
+) {
 
     private object Keys {
         val NUMBER_MERGE_BEST_SCORE = intPreferencesKey("number_merge_best_score")
         val MEMORY_MATCH_BEST_MOVES = intPreferencesKey("memory_match_best_moves")
         val MEMORY_MATCH_BEST_TIME = intPreferencesKey("memory_match_best_time")
         val QUICK_MATH_BEST_SCORE = intPreferencesKey("quick_math_best_score")
+        val WORD_SEARCH_CURRENT_INDEX = intPreferencesKey("word_search_current_index")
         val WORD_SEARCH_COMPLETED_INDEX = intPreferencesKey("word_search_completed_index")
         val WORD_SEARCH_SOLVED_IDS = stringSetPreferencesKey("word_search_solved_ids")
+        val SEEN_INSTRUCTION_IDS = stringSetPreferencesKey("seen_instruction_ids")
         val SOUND_ENABLED = booleanPreferencesKey("sound_enabled")
         val HAPTICS_ENABLED = booleanPreferencesKey("haptics_enabled")
         val TODAY_PICK_LAST_DATE = stringPreferencesKey("today_pick_last_date")
@@ -52,28 +66,36 @@ class PreferencesRepository(private val context: Context) {
         val TOTAL_GAMES_PLAYED = intPreferencesKey("total_games_played")
     }
 
-    val userPreferencesFlow: Flow<UserPreferences> = context.dataStore.data.map { prefs ->
-        val today = LocalDate.now().toString()
-        val yesterday = LocalDate.now().minusDays(1).toString()
+    val userPreferencesFlow: Flow<UserPreferences> = context.dataStore.data
+        .catch { error ->
+            if (error is IOException) emit(androidx.datastore.preferences.core.emptyPreferences())
+            else throw error
+        }
+        .map { prefs ->
+        val today = LocalDate.now(clock).toString()
+        val yesterday = LocalDate.now(clock).minusDays(1).toString()
+        val lastPickDate = prefs[Keys.TODAY_PICK_LAST_DATE] ?: ""
         val lastStreakDate = prefs[Keys.LAST_STREAK_DATE] ?: ""
         val rawCurrentStreak = prefs[Keys.CURRENT_STREAK] ?: 0
         val activeStreak = if (lastStreakDate == today || lastStreakDate == yesterday) rawCurrentStreak else 0
 
         UserPreferences(
-            numberMergeBestScore = prefs[Keys.NUMBER_MERGE_BEST_SCORE] ?: 0,
-            memoryMatchBestMoves = prefs[Keys.MEMORY_MATCH_BEST_MOVES] ?: 0,
-            memoryMatchBestTime = prefs[Keys.MEMORY_MATCH_BEST_TIME] ?: 0,
-            quickMathBestScore = prefs[Keys.QUICK_MATH_BEST_SCORE] ?: 0,
-            wordSearchCompletedIndex = prefs[Keys.WORD_SEARCH_COMPLETED_INDEX] ?: 0,
+            numberMergeBestScore = (prefs[Keys.NUMBER_MERGE_BEST_SCORE] ?: 0).coerceAtLeast(0),
+            memoryMatchBestMoves = (prefs[Keys.MEMORY_MATCH_BEST_MOVES] ?: 0).coerceAtLeast(0),
+            memoryMatchBestTime = (prefs[Keys.MEMORY_MATCH_BEST_TIME] ?: 0).coerceAtLeast(0),
+            quickMathBestScore = (prefs[Keys.QUICK_MATH_BEST_SCORE] ?: 0).coerceAtLeast(0),
+            wordSearchCurrentIndex = (prefs[Keys.WORD_SEARCH_CURRENT_INDEX] ?: 0).coerceAtLeast(0),
+            wordSearchCompletedIndex = (prefs[Keys.WORD_SEARCH_COMPLETED_INDEX] ?: 0).coerceAtLeast(0),
             wordSearchSolvedIds = prefs[Keys.WORD_SEARCH_SOLVED_IDS] ?: emptySet(),
+            seenInstructionIds = prefs[Keys.SEEN_INSTRUCTION_IDS] ?: emptySet(),
             soundEnabled = prefs[Keys.SOUND_ENABLED] ?: true,
             hapticsEnabled = prefs[Keys.HAPTICS_ENABLED] ?: true,
             todayPickLastDate = prefs[Keys.TODAY_PICK_LAST_DATE] ?: "",
-            todayPickCompleted = prefs[Keys.TODAY_PICK_COMPLETED] ?: false,
-            currentStreak = activeStreak,
-            bestStreak = prefs[Keys.BEST_STREAK] ?: 0,
+            todayPickCompleted = (prefs[Keys.TODAY_PICK_COMPLETED] ?: false) && lastPickDate == today,
+            currentStreak = activeStreak.coerceAtLeast(0),
+            bestStreak = (prefs[Keys.BEST_STREAK] ?: 0).coerceAtLeast(0),
             lastStreakDate = lastStreakDate,
-            totalGamesPlayed = prefs[Keys.TOTAL_GAMES_PLAYED] ?: 0
+            totalGamesPlayed = (prefs[Keys.TOTAL_GAMES_PLAYED] ?: 0).coerceAtLeast(0)
         )
     }
 
@@ -120,8 +142,23 @@ class PreferencesRepository(private val context: Context) {
 
             val currentIndex = prefs[Keys.WORD_SEARCH_COMPLETED_INDEX] ?: 0
             if (nextIndex > currentIndex) {
-                prefs[Keys.WORD_SEARCH_COMPLETED_INDEX] = nextIndex
+                prefs[Keys.WORD_SEARCH_COMPLETED_INDEX] = nextIndex.coerceAtLeast(0)
             }
+            prefs[Keys.WORD_SEARCH_CURRENT_INDEX] = nextIndex.coerceAtLeast(0)
+        }
+    }
+
+    suspend fun saveWordSearchCurrentIndex(index: Int) {
+        context.dataStore.edit { prefs ->
+            prefs[Keys.WORD_SEARCH_CURRENT_INDEX] = index.coerceAtLeast(0)
+        }
+    }
+
+    suspend fun markInstructionsSeen(gameType: GameType) {
+        context.dataStore.edit { prefs ->
+            val seen = (prefs[Keys.SEEN_INSTRUCTION_IDS] ?: emptySet()).toMutableSet()
+            seen += gameType.id
+            prefs[Keys.SEEN_INSTRUCTION_IDS] = seen
         }
     }
 
@@ -138,29 +175,20 @@ class PreferencesRepository(private val context: Context) {
     }
 
     suspend fun recordGameCompleted(playedGameType: GameType) {
-        val today = LocalDate.now().toString()
-        val yesterday = LocalDate.now().minusDays(1).toString()
+        val today = LocalDate.now(clock).toString()
+        val yesterday = LocalDate.now(clock).minusDays(1).toString()
 
         context.dataStore.edit { prefs ->
             // Increment total games
             val total = prefs[Keys.TOTAL_GAMES_PLAYED] ?: 0
-            prefs[Keys.TOTAL_GAMES_PLAYED] = total + 1
+            prefs[Keys.TOTAL_GAMES_PLAYED] = (total + 1).coerceAtLeast(0)
 
-            // Check today's pick game
-            val todayPickGame = getTodayPickGameType()
-            val lastPickDate = prefs[Keys.TODAY_PICK_LAST_DATE] ?: ""
+            // Only completing the selected daily game completes Today's Pick and advances the streak.
+            val todayPickGame = getTodayPickGameType(LocalDate.now(clock))
+            if (playedGameType != todayPickGame) return@edit
 
-            if (lastPickDate != today) {
-                // New day
-                prefs[Keys.TODAY_PICK_LAST_DATE] = today
-                if (playedGameType == todayPickGame) {
-                    prefs[Keys.TODAY_PICK_COMPLETED] = true
-                } else {
-                    prefs[Keys.TODAY_PICK_COMPLETED] = false
-                }
-            } else if (playedGameType == todayPickGame) {
-                prefs[Keys.TODAY_PICK_COMPLETED] = true
-            }
+            prefs[Keys.TODAY_PICK_LAST_DATE] = today
+            prefs[Keys.TODAY_PICK_COMPLETED] = true
 
             // Streak calculation
             val lastStreakDate = prefs[Keys.LAST_STREAK_DATE] ?: ""
@@ -199,10 +227,9 @@ class PreferencesRepository(private val context: Context) {
     }
 
     companion object {
-        fun getTodayPickGameType(): GameType {
-            val dayOfYear = LocalDate.now().dayOfYear
+        fun getTodayPickGameType(date: LocalDate = LocalDate.now()): GameType {
             val games = GameType.entries.toTypedArray()
-            return games[dayOfYear % games.size]
+            return games[Math.floorMod(date.toEpochDay(), games.size.toLong()).toInt()]
         }
     }
 }

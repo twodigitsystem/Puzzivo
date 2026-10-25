@@ -3,6 +3,7 @@ package com.tds.puzzivo.core.ads
 import android.app.Activity
 import android.content.Context
 import android.util.Log
+import android.widget.Toast
 import com.google.android.libraries.ads.mobile.sdk.common.AdLoadCallback
 import com.google.android.libraries.ads.mobile.sdk.common.AdRequest
 import com.google.android.libraries.ads.mobile.sdk.common.LoadAdError
@@ -26,13 +27,16 @@ object AdUnitIds {
     }
 }
 
-class AdManager(private val context: Context) {
+class AdManager(
+    private val context: Context,
+    private val canRequestAds: () -> Boolean = { true }
+) {
 
     private var rewardedAd: RewardedAd? = null
     private var isLoadingRewarded = false
 
     fun preloadRewardedAd() {
-        if (rewardedAd != null || isLoadingRewarded) return
+        if (!canRequestAds() || rewardedAd != null || isLoadingRewarded) return
         isLoadingRewarded = true
 
         val adRequest = AdRequest.Builder(AdUnitIds.getRewardedAdUnitId()).build()
@@ -56,22 +60,36 @@ class AdManager(private val context: Context) {
         onRewardEarned: () -> Unit,
         onAdUnavailable: () -> Unit
     ) {
+        if (!canRequestAds()) {
+            notifyUnavailable(onAdUnavailable)
+            return
+        }
+
         val ad = rewardedAd
         rewardedAd = null
         if (ad != null) {
+            var rewardDelivered = false
             try {
                 ad.show(activity) { _ ->
-                    onRewardEarned()
+                    if (!rewardDelivered) {
+                        rewardDelivered = true
+                        onRewardEarned()
+                    }
                     preloadRewardedAd()
                 }
             } catch (e: Exception) {
                 Log.e("AdManager", "Error showing rewarded ad", e)
-                onAdUnavailable()
+                notifyUnavailable(onAdUnavailable)
                 preloadRewardedAd()
             }
         } else {
-            onAdUnavailable()
+            notifyUnavailable(onAdUnavailable)
             preloadRewardedAd()
         }
+    }
+
+    private fun notifyUnavailable(onAdUnavailable: () -> Unit) {
+        Toast.makeText(context, "Rewarded ad unavailable. Please try again later.", Toast.LENGTH_SHORT).show()
+        onAdUnavailable()
     }
 }

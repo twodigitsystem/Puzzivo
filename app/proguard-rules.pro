@@ -1,7 +1,3 @@
-# Puzzivo Proguard / R8 Keep Rules
-# Note: Google Mobile Ads (AdMob) & UMP SDKs bundle consumer keep rules automatically in their AARs.
-
-# Keep local data models used in state & preference persistence
--keep class com.tds.puzzivo.core.model.GameResult { *; }
--keep class com.tds.puzzivo.core.model.DailyPick { *; }
--keep class com.tds.puzzivo.core.storage.UserPreferences { *; }
+# Puzzivo has no reflection-based application models. The Mobile Ads and UMP
+# dependencies provide their own consumer rules, so R8 can remove all unused
+# local code and resources without application-specific keep rules.

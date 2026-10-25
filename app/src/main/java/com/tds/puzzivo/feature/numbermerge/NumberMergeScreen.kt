@@ -13,10 +13,13 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
@@ -29,7 +32,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -38,7 +45,6 @@ import com.tds.puzzivo.core.design.AccentGreen
 import com.tds.puzzivo.core.design.AccentMagenta
 import com.tds.puzzivo.core.design.AccentOrange
 import com.tds.puzzivo.core.design.AccentYellow
-import com.tds.puzzivo.core.design.BannerAdView
 import com.tds.puzzivo.core.design.CardBorderColor
 import com.tds.puzzivo.core.design.ConfirmationDialog
 import com.tds.puzzivo.core.design.InstructionDialog
@@ -52,6 +58,7 @@ import com.tds.puzzivo.core.design.ResultDialog
 import com.tds.puzzivo.core.design.SecondaryButton
 import com.tds.puzzivo.core.design.TextPrimary
 import com.tds.puzzivo.core.design.TextSecondary
+import com.tds.puzzivo.R
 import kotlin.math.abs
 
 @Composable
@@ -60,14 +67,20 @@ fun NumberMergeScreen(
     viewModel: NumberMergeViewModel = viewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val shouldShowInstructions by viewModel.shouldShowInstructions.collectAsState()
     val context = LocalContext.current
     var showInstructions by remember { mutableStateOf(false) }
     var showExitConfirmation by remember { mutableStateOf(false) }
+    var showRestartConfirmation by remember { mutableStateOf(false) }
 
     var totalDragX by remember { mutableFloatStateOf(0f) }
     var totalDragY by remember { mutableFloatStateOf(0f) }
 
-    BackHandler(enabled = !uiState.isGameOver && uiState.score > 0) {
+    LaunchedEffect(shouldShowInstructions) {
+        if (shouldShowInstructions) showInstructions = true
+    }
+
+    BackHandler(enabled = !uiState.isGameOver && uiState.moveCount > 0) {
         showExitConfirmation = true
     }
 
@@ -79,21 +92,23 @@ fun NumberMergeScreen(
             modifier = Modifier.fillMaxSize()
         ) {
             PuzzivoTopBar(
-                title = "Number Merge",
+                title = stringResource(R.string.number_merge_title),
                 onBackClick = {
-                    if (!uiState.isGameOver && uiState.score > 0) {
+                    if (!uiState.isGameOver && uiState.moveCount > 0) {
                         showExitConfirmation = true
                     } else {
                         onBackClick()
                     }
                 },
-                onSettingsClick = { showInstructions = true }
+                onActionClick = { showInstructions = true },
+                actionContentDescription = stringResource(R.string.action_help)
             )
 
             Column(
                 modifier = Modifier
                     .weight(1f)
-                    .padding(16.dp),
+                    .padding(16.dp)
+                    .verticalScroll(rememberScrollState()),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 // Score Header
@@ -106,7 +121,7 @@ fun NumberMergeScreen(
                             modifier = Modifier.padding(12.dp),
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
-                            Text(text = "SCORE", fontSize = 12.sp, color = TextSecondary, fontWeight = FontWeight.Bold)
+                            Text(text = stringResource(R.string.number_merge_score), fontSize = 12.sp, color = TextSecondary, fontWeight = FontWeight.Bold)
                             Text(text = "${uiState.score}", fontSize = 22.sp, color = AccentYellow, fontWeight = FontWeight.Bold)
                         }
                     }
@@ -116,7 +131,7 @@ fun NumberMergeScreen(
                             modifier = Modifier.padding(12.dp),
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
-                            Text(text = "BEST", fontSize = 12.sp, color = TextSecondary, fontWeight = FontWeight.Bold)
+                            Text(text = stringResource(R.string.number_merge_best), fontSize = 12.sp, color = TextSecondary, fontWeight = FontWeight.Bold)
                             Text(text = "${uiState.bestScore}", fontSize = 22.sp, color = AccentCyan, fontWeight = FontWeight.Bold)
                         }
                     }
@@ -188,6 +203,15 @@ fun NumberMergeScreen(
                     }
                 }
 
+                if (uiState.hasReached2048) {
+                    Text(
+                        text = stringResource(R.string.number_merge_milestone),
+                        color = AccentYellow,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.padding(top = 8.dp)
+                    )
+                }
+
                 Spacer(modifier = Modifier.height(20.dp))
 
                 // Action Controls: Undo and New Game
@@ -196,7 +220,7 @@ fun NumberMergeScreen(
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     SecondaryButton(
-                        text = "⏪ Undo (Ad)",
+                        text = stringResource(R.string.hint_undo),
                         enabled = uiState.canUndo,
                         onClick = {
                             if (context is Activity) {
@@ -207,23 +231,31 @@ fun NumberMergeScreen(
                     )
 
                     PrimaryButton(
-                        text = "New Game",
-                        onClick = { viewModel.onRestart() },
+                        text = stringResource(R.string.action_new_game),
+                        onClick = {
+                            if (uiState.moveCount > 0) showRestartConfirmation = true
+                            else viewModel.onRestart()
+                        },
                         modifier = Modifier.weight(1f)
                     )
                 }
+                Text(
+                    text = stringResource(R.string.hint_watch_ad),
+                    style = androidx.compose.material3.MaterialTheme.typography.bodySmall,
+                    color = TextSecondary,
+                    modifier = Modifier.padding(top = 6.dp)
+                )
             }
 
-            BannerAdView(modifier = Modifier.padding(16.dp))
         }
     }
 
     if (showExitConfirmation) {
         ConfirmationDialog(
-            title = "Leave Game?",
-            message = "Your current score will be saved locally, but your active undo move history will reset.",
-            confirmText = "Leave",
-            dismissText = "Keep Playing",
+            title = stringResource(R.string.dialog_leave_title),
+            message = stringResource(R.string.number_merge_leave_message),
+            confirmText = stringResource(R.string.action_leave),
+            dismissText = stringResource(R.string.action_keep_playing),
             onConfirm = {
                 showExitConfirmation = false
                 onBackClick()
@@ -232,20 +264,38 @@ fun NumberMergeScreen(
         )
     }
 
+    if (showRestartConfirmation) {
+        ConfirmationDialog(
+            title = stringResource(R.string.number_merge_new_game_title),
+            message = stringResource(R.string.number_merge_new_game_message),
+            confirmText = stringResource(R.string.action_new_game),
+            dismissText = stringResource(R.string.action_keep_playing),
+            onConfirm = {
+                showRestartConfirmation = false
+                viewModel.onRestart()
+            },
+            onDismiss = { showRestartConfirmation = false }
+        )
+    }
+
     if (showInstructions) {
         InstructionDialog(
-            title = "Number Merge Rules",
-            description = "Swipe Up, Down, Left, or Right to slide tiles. When two equal numbers touch during a swipe, they merge into one with double the value! Score increases with each merge.",
-            onDismiss = { showInstructions = false }
+            title = stringResource(R.string.number_merge_rules_title),
+            description = stringResource(R.string.number_merge_rules_description),
+                 onDismiss = {
+                     showInstructions = false
+                     viewModel.onInstructionsDismissed()
+                 }
         )
     }
 
     if (uiState.isGameOver) {
         ResultDialog(
-            title = "Game Over!",
-            scoreText = "${uiState.score} points",
-            isNewBest = uiState.score > 0 && uiState.score >= uiState.bestScore,
+            title = stringResource(R.string.number_merge_game_over),
+            scoreText = pluralStringResource(R.plurals.number_merge_score_format, uiState.score, uiState.score),
+            isNewBest = uiState.isNewBest,
             bestScoreText = "${uiState.bestScore}",
+            detailsText = pluralStringResource(R.plurals.number_merge_result_detail, uiState.moveCount, uiState.moveCount),
             onReplayClick = { viewModel.onRestart() },
             onHomeClick = onBackClick
         )
@@ -258,6 +308,11 @@ fun NumberTile(
     modifier: Modifier = Modifier
 ) {
     val (bgColor, textColor) = getTileColors(value)
+    val tileDescription = if (value == 0) {
+        stringResource(R.string.number_merge_empty_tile)
+    } else {
+        stringResource(R.string.number_merge_tile_description, value)
+    }
 
     val scale by androidx.compose.animation.core.animateFloatAsState(
         targetValue = if (value > 0) 1f else 0.92f,
@@ -275,6 +330,8 @@ fun NumberTile(
         modifier = modifier.graphicsLayer {
             scaleX = scale
             scaleY = scale
+        }.semantics {
+            contentDescription = tileDescription
         }
     ) {
         Box(

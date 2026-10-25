@@ -1,443 +1,347 @@
 package com.tds.puzzivo.feature.wordsearch
 
+import kotlin.math.abs
+import kotlin.random.Random
+
+/**
+ * Bundled Word Search content.
+ *
+ * Boards are generated deterministically from the definitions below so every
+ * installation receives the same puzzles, while words are distributed across
+ * the full 10x10 board using mixed directions, reversals, overlaps, and
+ * randomized filler letters instead of obvious one-word-per-row layouts.
+ */
 object WordSearchRepository {
 
+    private const val GRID_SIZE = 10
+    private const val MAX_GENERATION_ATTEMPTS = 250
+    private const val EMPTY_CELL = '\u0000'
+
+    private val directions = listOf(
+        Direction(-1, -1), Direction(-1, 0), Direction(-1, 1),
+        Direction(0, -1),                      Direction(0, 1),
+        Direction(1, -1),  Direction(1, 0),  Direction(1, 1)
+    )
+
+    private val definitions = listOf(
+        PuzzleDefinition("puzzle_01", "Puzzle 1: Animals", "Animals", "Challenge", listOf("ELEPHANT", "TIGER", "MONKEY", "RABBIT", "ZEBRA", "HORSE")),
+        PuzzleDefinition("puzzle_02", "Puzzle 2: Space", "Space", "Challenge", listOf("PLANET", "COMET", "ORBIT", "GALAXY", "METEOR", "NEBULA")),
+        PuzzleDefinition("puzzle_03", "Puzzle 3: Fruits", "Fruits", "Challenge", listOf("APPLE", "BANANA", "CHERRY", "ORANGE", "PAPAYA", "MELON")),
+        PuzzleDefinition("puzzle_04", "Puzzle 4: Colors", "Colors", "Challenge", listOf("PURPLE", "ORANGE", "YELLOW", "INDIGO", "VIOLET", "SILVER")),
+        PuzzleDefinition("puzzle_05", "Puzzle 5: Tech", "Tech", "Challenge", listOf("CODING", "BINARY", "SERVER", "KERNEL", "OBJECT", "PIXEL")),
+        PuzzleDefinition("puzzle_06", "Puzzle 6: Weather", "Weather", "Challenge", listOf("RAINBOW", "THUNDER", "BREEZE", "WINTER", "CLOUDS", "STORM")),
+        PuzzleDefinition("puzzle_07", "Puzzle 7: Music", "Music", "Challenge", listOf("MELODY", "GUITAR", "RHYTHM", "PIANO", "SINGER", "HARMONY")),
+        PuzzleDefinition("puzzle_08", "Puzzle 8: Sports", "Sports", "Challenge", listOf("SOCCER", "TENNIS", "HOCKEY", "RUNNING", "ATHLETE", "STADIUM")),
+        PuzzleDefinition("puzzle_09", "Puzzle 9: Nature", "Nature", "Challenge", listOf("FOREST", "GARDEN", "FLOWER", "MOUNTAIN", "RIVER", "VALLEY")),
+        PuzzleDefinition("puzzle_10", "Puzzle 10: Ocean", "Ocean", "Challenge", listOf("DOLPHIN", "WHALE", "CORAL", "ISLAND", "SEASHELL", "TURTLE")),
+        PuzzleDefinition("puzzle_11", "Puzzle 11: Food", "Food", "Expert", listOf("NOODLE", "PIZZA", "COOKIE", "CHEESE", "TOMATO", "BREAD")),
+        PuzzleDefinition("puzzle_12", "Puzzle 12: Time", "Time", "Expert", listOf("MINUTE", "SECOND", "WEEK", "SEASON", "FUTURE", "MIDNIGHT")),
+        PuzzleDefinition("puzzle_13", "Puzzle 13: Gems", "Gems", "Expert", listOf("RUBY", "JADE", "DIAMOND", "SAPPHIRE", "OPAL", "CRYSTAL")),
+        PuzzleDefinition("puzzle_14", "Puzzle 14: City", "City", "Expert", listOf("STREET", "BRIDGE", "TUNNEL", "MARKET", "OFFICE", "STATION")),
+        PuzzleDefinition("puzzle_15", "Puzzle 15: Plants", "Plants", "Expert", listOf("FLOWER", "LEAF", "ROOTS", "BRANCH", "PETALS", "CACTUS")),
+        PuzzleDefinition("puzzle_16", "Puzzle 16: Math", "Math", "Expert", listOf("NUMBER", "PLUS", "VECTOR", "MATRIX", "ALGEBRA", "FRACTION")),
+        PuzzleDefinition("puzzle_17", "Puzzle 17: Tools", "Tools", "Expert", listOf("HAMMER", "WRENCH", "SCREW", "PLIERS", "DRILL", "SOCKET")),
+        PuzzleDefinition("puzzle_18", "Puzzle 18: Myth", "Myth", "Expert", listOf("DRAGON", "WIZARD", "CASTLE", "KNIGHT", "LEGEND", "PHOENIX")),
+        PuzzleDefinition("puzzle_19", "Puzzle 19: Energy", "Energy", "Expert", listOf("POWER", "SOLAR", "ATOMIC", "FUSION", "TURBINE", "BATTERY")),
+        PuzzleDefinition("puzzle_20", "Puzzle 20: Galaxy", "Galaxy", "Expert", listOf("NEBULA", "GALAXY", "ASTRAL", "COSMOS", "ORBIT", "QUASAR"))
+    )
+
     val puzzles: List<WordSearchPuzzle> by lazy {
-        listOf(
-            createPuzzle(
-                id = "puzzle_01",
-                title = "Puzzle 1: Animals",
-                theme = "Animals",
-                rows = 8,
-                cols = 8,
-                words = listOf("CAT", "DOG", "LION", "BEAR", "WOLF", "FOX"),
-                gridStrings = listOf(
-                    "C A T X Y Z A B",
-                    "D O G X P Q R S",
-                    "L I O N T U V W",
-                    "B E A R M N O P",
-                    "W O L F A B C D",
-                    "F O X K L M N O",
-                    "P Q R S T U V W",
-                    "X Y Z A B C D E"
-                )
-            ),
-            createPuzzle(
-                id = "puzzle_02",
-                title = "Puzzle 2: Space",
-                theme = "Space",
-                rows = 8,
-                cols = 8,
-                words = listOf("STAR", "MOON", "SUN", "MARS", "ORBIT", "COMET"),
-                gridStrings = listOf(
-                    "S T A R A B C D",
-                    "M O O N E F G H",
-                    "S U N I J K L M",
-                    "M A R S N O P Q",
-                    "O R B I T R S T",
-                    "C O M E T U V W",
-                    "X Y Z A B C D E",
-                    "F G H I J K L M"
-                )
-            ),
-            createPuzzle(
-                id = "puzzle_03",
-                title = "Puzzle 3: Fruits",
-                theme = "Fruits",
-                rows = 8,
-                cols = 8,
-                words = listOf("APPLE", "BANANA", "FIG", "PEAR", "PLUM", "KIWI"),
-                gridStrings = listOf(
-                    "A P P L E X Y Z",
-                    "B A N A N A A B",
-                    "F I G C D E F G",
-                    "P E A R H I J K",
-                    "P L U M L M N O",
-                    "K I W I P Q R S",
-                    "T U V W X Y Z A",
-                    "B C D E F G H I"
-                )
-            ),
-            createPuzzle(
-                id = "puzzle_04",
-                title = "Puzzle 4: Colors",
-                theme = "Colors",
-                rows = 8,
-                cols = 8,
-                words = listOf("RED", "BLUE", "GREEN", "PINK", "GOLD", "CYAN"),
-                gridStrings = listOf(
-                    "R E D A B C D E",
-                    "B L U E F G H I",
-                    "G R E E N J K L",
-                    "P I N K M N O P",
-                    "G O L D Q R S T",
-                    "C Y A N U V W X",
-                    "Y Z A B C D E F",
-                    "G H I J K L M N"
-                )
-            ),
-            createPuzzle(
-                id = "puzzle_05",
-                title = "Puzzle 5: Tech",
-                theme = "Tech",
-                rows = 8,
-                cols = 8,
-                words = listOf("CODE", "BYTE", "DATA", "CHIP", "NODE", "JAVA"),
-                gridStrings = listOf(
-                    "C O D E A B C D",
-                    "B Y T E E F G H",
-                    "D A T A I J K L",
-                    "C H I P M N O P",
-                    "N O D E Q R S T",
-                    "J A V A U V W X",
-                    "Y Z A B C D E F",
-                    "G H I J K L M N"
-                )
-            ),
-            createPuzzle(
-                id = "puzzle_06",
-                title = "Puzzle 6: Weather",
-                theme = "Weather",
-                rows = 8,
-                cols = 8,
-                words = listOf("RAIN", "SNOW", "WIND", "HAIL", "SUN", "CLOUDS"),
-                gridStrings = listOf(
-                    "R A I N A B C D",
-                    "S N O W E F G H",
-                    "W I N D I J K L",
-                    "H A I L M N O P",
-                    "S U N Q R S T U",
-                    "C L O U D S V W",
-                    "X Y Z A B C D E",
-                    "F G H I J K L M"
-                )
-            ),
-            createPuzzle(
-                id = "puzzle_07",
-                title = "Puzzle 7: Music",
-                theme = "Music",
-                rows = 8,
-                cols = 8,
-                words = listOf("SONG", "BEAT", "ROCK", "JAZZ", "NOTE", "BASS"),
-                gridStrings = listOf(
-                    "S O N G A B C D",
-                    "B E A T E F G H",
-                    "R O C K I J K L",
-                    "J A Z Z M N O P",
-                    "N O T E Q R S T",
-                    "B A S S U V W X",
-                    "Y Z A B C D E F",
-                    "G H I J K L M N"
-                )
-            ),
-            createPuzzle(
-                id = "puzzle_08",
-                title = "Puzzle 8: Sports",
-                theme = "Sports",
-                rows = 8,
-                cols = 8,
-                words = listOf("GOLF", "SWIM", "RUN", "BALL", "RACE", "TEAM"),
-                gridStrings = listOf(
-                    "G O L F A B C D",
-                    "S W I M E F G H",
-                    "R U N I J K L M",
-                    "B A L L N O P Q",
-                    "R A C E R S T U",
-                    "T E A M V W X Y",
-                    "Z A B C D E F G",
-                    "H I J K L M N O"
-                )
-            ),
-            createPuzzle(
-                id = "puzzle_09",
-                title = "Puzzle 9: Nature",
-                theme = "Nature",
-                rows = 8,
-                cols = 8,
-                words = listOf("TREE", "LEAF", "WOOD", "POND", "HILL", "BIRD"),
-                gridStrings = listOf(
-                    "T R E E A B C D",
-                    "L E A F E F G H",
-                    "W O O D I J K L",
-                    "P O N D M N O P",
-                    "H I L L Q R S T",
-                    "B I R D U V W X",
-                    "Y Z A B C D E F",
-                    "G H I J K L M N"
-                )
-            ),
-            createPuzzle(
-                id = "puzzle_10",
-                title = "Puzzle 10: Ocean",
-                theme = "Ocean",
-                rows = 8,
-                cols = 8,
-                words = listOf("FISH", "WAVE", "SAND", "SHIP", "KELP", "SEAL"),
-                gridStrings = listOf(
-                    "F I S H A B C D",
-                    "W A V E E F G H",
-                    "S A N D I J K L",
-                    "S H I P M N O P",
-                    "K E L P Q R S T",
-                    "S E A L U V W X",
-                    "Y Z A B C D E F",
-                    "G H I J K L M N"
-                )
-            ),
-            createPuzzle(
-                id = "puzzle_11",
-                title = "Puzzle 11: Food",
-                theme = "Food",
-                rows = 8,
-                cols = 8,
-                words = listOf("RICE", "SOUP", "CAKE", "PIE", "MILK", "MEAT"),
-                gridStrings = listOf(
-                    "R I C E A B C D",
-                    "S O U P E F G H",
-                    "C A K E I J K L",
-                    "P I E M N O P Q",
-                    "M I L K R S T U",
-                    "M E A T V W X Y",
-                    "Z A B C D E F G",
-                    "H I J K L M N O"
-                )
-            ),
-            createPuzzle(
-                id = "puzzle_12",
-                title = "Puzzle 12: Time",
-                theme = "Time",
-                rows = 8,
-                cols = 8,
-                words = listOf("HOUR", "NOON", "WEEK", "YEAR", "TICK", "DAWN"),
-                gridStrings = listOf(
-                    "H O U R A B C D",
-                    "N O O N E F G H",
-                    "W E E K I J K L",
-                    "Y E A R M N O P",
-                    "T I C K Q R S T",
-                    "D A W N U V W X",
-                    "Y Z A B C D E F",
-                    "G H I J K L M N"
-                )
-            ),
-            createPuzzle(
-                id = "puzzle_13",
-                title = "Puzzle 13: Gems",
-                theme = "Gems",
-                rows = 8,
-                cols = 8,
-                words = listOf("RUBY", "JADE", "OPAL", "GOLD", "PEARL", "ONYX"),
-                gridStrings = listOf(
-                    "R U B Y A B C D",
-                    "J A D E E F G H",
-                    "O P A L I J K L",
-                    "G O L D M N O P",
-                    "P E A R L Q R S",
-                    "O N Y X T U V W",
-                    "X Y Z A B C D E",
-                    "F G H I J K L M"
-                )
-            ),
-            createPuzzle(
-                id = "puzzle_14",
-                title = "Puzzle 14: City",
-                theme = "City",
-                rows = 8,
-                cols = 8,
-                words = listOf("PARK", "ROAD", "BUS", "TAXI", "WALL", "PORT"),
-                gridStrings = listOf(
-                    "P A R K A B C D",
-                    "R O A D E F G H",
-                    "B U S I J K L M",
-                    "T A X I N O P Q",
-                    "W A L L R S T U",
-                    "P O R T V W X Y",
-                    "Z A B C D E F G",
-                    "H I J K L M N O"
-                )
-            ),
-            createPuzzle(
-                id = "puzzle_15",
-                title = "Puzzle 15: Plants",
-                theme = "Plants",
-                rows = 8,
-                cols = 8,
-                words = listOf("ROSE", "FERN", "MOSS", "MINT", "REED", "BUSH"),
-                gridStrings = listOf(
-                    "R O S E A B C D",
-                    "F E R N E F G H",
-                    "M O S S I J K L",
-                    "M I N T M N O P",
-                    "R E E D Q R S T",
-                    "B U S H U V W X",
-                    "Y Z A B C D E F",
-                    "G H I J K L M N"
-                )
-            ),
-            createPuzzle(
-                id = "puzzle_16",
-                title = "Puzzle 16: Math",
-                theme = "Math",
-                rows = 8,
-                cols = 8,
-                words = listOf("ZERO", "PLUS", "UNIT", "SUM", "GRID", "EVEN"),
-                gridStrings = listOf(
-                    "Z E R O A B C D",
-                    "P L U S E F G H",
-                    "U N I T I J K L",
-                    "S U M M N O P Q",
-                    "G R I D R S T U",
-                    "E V E N V W X Y",
-                    "Z A B C D E F G",
-                    "H I J K L M N O"
-                )
-            ),
-            createPuzzle(
-                id = "puzzle_17",
-                title = "Puzzle 17: Tools",
-                theme = "Tools",
-                rows = 8,
-                cols = 8,
-                words = listOf("SAW", "AXE", "NAIL", "GEAR", "BOLT", "PUMP"),
-                gridStrings = listOf(
-                    "S A W A B C D E",
-                    "A X E F G H I J",
-                    "N A I L K L M N",
-                    "G E A R O P Q R",
-                    "B O L T S T U V",
-                    "P U M P W X Y Z",
-                    "A B C D E F G H",
-                    "I J K L M N O P"
-                )
-            ),
-            createPuzzle(
-                id = "puzzle_18",
-                title = "Puzzle 18: Myth",
-                theme = "Myth",
-                rows = 8,
-                cols = 8,
-                words = listOf("HERO", "RUNE", "SAGA", "KING", "CROWN", "FATE"),
-                gridStrings = listOf(
-                    "H E R O A B C D",
-                    "R U N E E F G H",
-                    "S A G A I J K L",
-                    "K I N G M N O P",
-                    "C R O W N Q R S",
-                    "F A T E T U V W",
-                    "X Y Z A B C D E",
-                    "F G H I J K L M"
-                )
-            ),
-            createPuzzle(
-                id = "puzzle_19",
-                title = "Puzzle 19: Energy",
-                theme = "Energy",
-                rows = 8,
-                cols = 8,
-                words = listOf("VOLT", "HEAT", "WATT", "GLOW", "FUEL", "ATOM"),
-                gridStrings = listOf(
-                    "V O L T A B C D",
-                    "H E A T E F G H",
-                    "W A T T I J K L",
-                    "G L O W M N O P",
-                    "F U E L Q R S T",
-                    "A T O M U V W X",
-                    "Y Z A B C D E F",
-                    "G H I J K L M N"
-                )
-            ),
-            createPuzzle(
-                id = "puzzle_20",
-                title = "Puzzle 20: Galaxy",
-                theme = "Galaxy",
-                rows = 8,
-                cols = 8,
-                words = listOf("NEBULA", "NOVA", "DUST", "VOID", "MASS", "HALO"),
-                gridStrings = listOf(
-                    "N E B U L A A B",
-                    "N O V A C D E F",
-                    "D U S T G H I J",
-                    "V O I D K L M N",
-                    "M A S S O P Q R",
-                    "H A L O S T U V",
-                    "W X Y Z A B C D",
-                    "E F G H I J K L"
-                )
-            )
-        )
+        definitions.mapIndexed { index, definition ->
+            generatePuzzle(definition, index)
+        }
     }
 
-    private fun createPuzzle(
-        id: String,
-        title: String,
-        theme: String,
-        rows: Int,
-        cols: Int,
-        words: List<String>,
-        gridStrings: List<String>
-    ): WordSearchPuzzle {
-        val grid = gridStrings.map { line ->
-            line.replace(" ", "").toList()
-        }
+    /** Returns all bundled-content validation errors; an empty list means the pack is valid. */
+    fun validateAll(): List<String> = puzzles.flatMap { puzzle ->
+        buildList {
+            if (puzzle.grid.size != puzzle.rows) {
+                add("${puzzle.id}: expected ${puzzle.rows} rows, found ${puzzle.grid.size}")
+            }
 
-        val directions = listOf(
-            Pair(0, 1),   // Horizontal Right
-            Pair(0, -1),  // Horizontal Left
-            Pair(1, 0),   // Vertical Down
-            Pair(-1, 0),  // Vertical Up
-            Pair(1, 1),   // Diagonal Down-Right
-            Pair(1, -1),  // Diagonal Down-Left
-            Pair(-1, 1),  // Diagonal Up-Right
-            Pair(-1, -1)  // Diagonal Up-Left
-        )
-
-        val targetWords = words.map { word ->
-            var startR = -1
-            var startC = -1
-            var endR = -1
-            var endC = -1
-
-            searchLoop@ for (r in 0 until rows) {
-                for (c in 0 until cols) {
-                    for ((dr, dc) in directions) {
-                        var match = true
-                        for (i in word.indices) {
-                            val nr = r + dr * i
-                            val nc = c + dc * i
-                            if (nr !in 0 until rows || nc !in 0 until cols || grid[nr][nc] != word[i]) {
-                                match = false
-                                break
-                            }
-                        }
-                        if (match) {
-                            startR = r
-                            startC = c
-                            endR = r + dr * (word.length - 1)
-                            endC = c + dc * (word.length - 1)
-                            break@searchLoop
-                        }
-                    }
+            puzzle.grid.forEachIndexed { row, cells ->
+                if (cells.size != puzzle.cols) {
+                    add("${puzzle.id}: row $row expected ${puzzle.cols} columns, found ${cells.size}")
                 }
             }
 
-            TargetWord(
-                id = "${id}_$word",
-                word = word,
-                startRow = startR,
-                startCol = startC,
-                endRow = endR,
-                endCol = endC
+            puzzle.targetWords.forEach { target ->
+                if (target.startRow !in 0 until puzzle.rows ||
+                    target.startCol !in 0 until puzzle.cols ||
+                    target.endRow !in 0 until puzzle.rows ||
+                    target.endCol !in 0 until puzzle.cols
+                ) {
+                    add("${puzzle.id}: ${target.word} has invalid coordinates")
+                    return@forEach
+                }
+
+                val path = pathBetween(target)
+                if (path == null || path.size != target.word.length) {
+                    add("${puzzle.id}: ${target.word} has invalid coordinates")
+                    return@forEach
+                }
+
+                val boardWord = path.joinToString("") { position ->
+                    puzzle.grid[position.row][position.col].toString()
+                }
+                if (!boardWord.equals(target.word, ignoreCase = true)) {
+                    add("${puzzle.id}: ${target.word} does not match its coordinates")
+                }
+
+                val occurrences = findOccurrences(puzzle.grid, target.word)
+                if (occurrences.size != 1) {
+                    add("${puzzle.id}: ${target.word} has ${occurrences.size} possible paths")
+                }
+            }
+
+            if (!difficultyRequirementsMet(puzzle)) {
+                add("${puzzle.id}: insufficient direction variety for ${puzzle.difficulty} difficulty")
+            }
+        }
+    }
+
+    private fun generatePuzzle(definition: PuzzleDefinition, definitionIndex: Int): WordSearchPuzzle {
+        repeat(MAX_GENERATION_ATTEMPTS) { attempt ->
+            val random = Random(definition.id.hashCode() * 31 + definitionIndex * 997 + attempt)
+            val grid = Array(GRID_SIZE) { CharArray(GRID_SIZE) { EMPTY_CELL } }
+            val placements = mutableListOf<Placement>()
+            var failed = false
+
+            definition.words
+                .sortedByDescending(String::length)
+                .forEachIndexed { wordIndex, word ->
+                    if (failed) return@forEachIndexed
+
+                    val candidates = allPlacements(word, grid, random)
+                        .filterNot { placement ->
+                            // Avoid the easiest visual pattern: normal left-to-right
+                            // words concentrated at the beginning of the pack.
+                            definition.difficulty == "Challenge" &&
+                                wordIndex < 4 &&
+                                placement.deltaRow == 0 &&
+                                placement.deltaCol == 1
+                        }
+
+                    val selected = choosePlacement(candidates, grid, random)
+                    if (selected == null) {
+                        failed = true
+                    } else {
+                        writePlacement(grid, selected)
+                        placements += selected
+                    }
+                }
+
+            if (failed) return@repeat
+
+            fillEmptyCells(grid, random)
+            val targetWords = placements
+                .shuffled(random)
+                .map { placement -> placement.toTargetWord(definition.id) }
+
+            val puzzle = WordSearchPuzzle(
+                id = definition.id,
+                title = definition.title,
+                theme = definition.theme,
+                rows = GRID_SIZE,
+                cols = GRID_SIZE,
+                grid = grid.map(CharArray::toList),
+                targetWords = targetWords,
+                difficulty = definition.difficulty
+            )
+
+            if (validatePuzzle(puzzle)) return puzzle
+        }
+
+        error("Unable to generate a valid Word Search puzzle for ${definition.id}")
+    }
+
+    private fun validatePuzzle(puzzle: WordSearchPuzzle): Boolean =
+        puzzle.targetWords.all { target ->
+            val path = pathBetween(target) ?: return@all false
+            val boardWord = path.joinToString("") { position ->
+                puzzle.grid[position.row][position.col].toString()
+            }
+            boardWord.equals(target.word, ignoreCase = true) &&
+                findOccurrences(puzzle.grid, target.word).size == 1
+        } && difficultyRequirementsMet(puzzle)
+
+    private fun difficultyRequirementsMet(puzzle: WordSearchPuzzle): Boolean {
+        val directionsUsed = puzzle.targetWords.map { target ->
+            (target.endRow - target.startRow).sign() to
+                (target.endCol - target.startCol).sign()
+        }.toSet()
+
+        val hasDiagonal = directionsUsed.any { (row, col) -> row != 0 && col != 0 }
+        val hasVertical = directionsUsed.any { (row, col) -> row != 0 && col == 0 }
+        val hasReverse = directionsUsed.any { (row, col) -> row < 0 || col < 0 }
+
+        return directionsUsed.size >= 4 && hasDiagonal && hasVertical && hasReverse
+    }
+
+    private fun allPlacements(
+        word: String,
+        grid: Array<CharArray>,
+        random: Random
+    ): List<Placement> = buildList {
+        directions.shuffled(random).forEach { direction ->
+            for (row in 0 until GRID_SIZE) {
+                for (col in 0 until GRID_SIZE) {
+                    val endRow = row + direction.deltaRow * (word.length - 1)
+                    val endCol = col + direction.deltaCol * (word.length - 1)
+                    if (endRow !in 0 until GRID_SIZE || endCol !in 0 until GRID_SIZE) continue
+
+                    val placement = Placement(
+                        word = word,
+                        startRow = row,
+                        startCol = col,
+                        deltaRow = direction.deltaRow,
+                        deltaCol = direction.deltaCol
+                    )
+
+                    if (canWrite(grid, placement)) add(placement)
+                }
+            }
+        }
+    }
+
+    private fun choosePlacement(
+        candidates: List<Placement>,
+        grid: Array<CharArray>,
+        random: Random
+    ): Placement? {
+        if (candidates.isEmpty()) return null
+
+        val ranked = candidates
+            .map { it to overlapCount(grid, it) }
+            .sortedByDescending { (_, overlap) -> overlap }
+            .take(minOf(24, candidates.size))
+
+        return ranked[random.nextInt(ranked.size)].first
+    }
+
+    private fun canWrite(grid: Array<CharArray>, placement: Placement): Boolean =
+        placement.positions().all { position ->
+            val existing = grid[position.row][position.col]
+            existing == EMPTY_CELL || existing == placement.word[position.offset]
+        }
+
+    private fun overlapCount(grid: Array<CharArray>, placement: Placement): Int =
+        placement.positions().count { position ->
+            grid[position.row][position.col] == placement.word[position.offset]
+        }
+
+    private fun writePlacement(grid: Array<CharArray>, placement: Placement) {
+        placement.positions().forEach { position ->
+            grid[position.row][position.col] = placement.word[position.offset]
+        }
+    }
+
+    private fun fillEmptyCells(grid: Array<CharArray>, random: Random) {
+        val alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+        for (row in grid.indices) {
+            for (col in grid[row].indices) {
+                if (grid[row][col] == EMPTY_CELL) {
+                    grid[row][col] = alphabet[random.nextInt(alphabet.length)]
+                }
+            }
+        }
+    }
+
+    private fun findOccurrences(
+        grid: List<List<Char>>,
+        word: String
+    ): Set<PathKey> {
+        val occurrences = mutableSetOf<PathKey>()
+        for (row in grid.indices) {
+            for (col in grid[row].indices) {
+                directions.forEach { direction ->
+                    val endRow = row + direction.deltaRow * (word.length - 1)
+                    val endCol = col + direction.deltaCol * (word.length - 1)
+                    if (endRow !in grid.indices || endCol !in grid[row].indices) return@forEach
+
+                    val matches = word.indices.all { offset ->
+                        grid[row + direction.deltaRow * offset][col + direction.deltaCol * offset] == word[offset]
+                    }
+                    if (matches) {
+                        occurrences += PathKey.canonical(
+                            CellPosition(row, col),
+                            CellPosition(endRow, endCol)
+                        )
+                    }
+                }
+            }
+        }
+        return occurrences
+    }
+
+    private fun pathBetween(target: TargetWord): List<CellPosition>? {
+        val deltaRow = target.endRow - target.startRow
+        val deltaCol = target.endCol - target.startCol
+        val absRow = abs(deltaRow)
+        val absCol = abs(deltaCol)
+        if (deltaRow != 0 && deltaCol != 0 && absRow != absCol) return null
+
+        val steps = maxOf(absRow, absCol)
+        val stepRow = deltaRow.sign()
+        val stepCol = deltaCol.sign()
+        return List(steps + 1) { offset ->
+            CellPosition(
+                row = target.startRow + offset * stepRow,
+                col = target.startCol + offset * stepCol
+            )
+        }
+    }
+
+    private fun Int.sign(): Int = when {
+        this > 0 -> 1
+        this < 0 -> -1
+        else -> 0
+    }
+
+    private data class PuzzleDefinition(
+        val id: String,
+        val title: String,
+        val theme: String,
+        val difficulty: String,
+        val words: List<String>
+    )
+
+    private data class Direction(val deltaRow: Int, val deltaCol: Int)
+
+    private data class Placement(
+        val word: String,
+        val startRow: Int,
+        val startCol: Int,
+        val deltaRow: Int,
+        val deltaCol: Int
+    ) {
+        fun positions(): List<PositionWithOffset> = word.indices.map { offset ->
+            PositionWithOffset(
+                row = startRow + deltaRow * offset,
+                col = startCol + deltaCol * offset,
+                offset = offset
             )
         }
 
-        return WordSearchPuzzle(
-            id = id,
-            title = title,
-            theme = theme,
-            rows = rows,
-            cols = cols,
-            grid = grid,
-            targetWords = targetWords
+        fun toTargetWord(puzzleId: String): TargetWord = TargetWord(
+            id = "${puzzleId}_$word",
+            word = word,
+            startRow = startRow,
+            startCol = startCol,
+            endRow = startRow + deltaRow * (word.length - 1),
+            endCol = startCol + deltaCol * (word.length - 1)
         )
+    }
+
+    private data class PositionWithOffset(val row: Int, val col: Int, val offset: Int)
+
+    private data class PathKey(val first: CellPosition, val second: CellPosition) {
+        companion object {
+            fun canonical(first: CellPosition, second: CellPosition): PathKey {
+                val firstComesFirst = first.row < second.row ||
+                    (first.row == second.row && first.col <= second.col)
+                return if (firstComesFirst) PathKey(first, second) else PathKey(second, first)
+            }
+        }
     }
 }

@@ -20,7 +20,9 @@ data class MemoryMatchState(
     val isGameComplete: Boolean = false,
     val isInputLocked: Boolean = false,
     val flippedCardIndices: List<Int> = emptyList(),
-    val hasUsedHint: Boolean = false
+    val hasUsedHint: Boolean = false,
+    val hintedCardIndices: List<Int> = emptyList(),
+    val isNewBest: Boolean = false
 )
 
 class MemoryMatchGameEngine(
@@ -29,7 +31,7 @@ class MemoryMatchGameEngine(
     var state = MemoryMatchState()
         private set
 
-    private val pairIcons = listOf("🌟", "🎮", "🧩", "🎲", "🎯", "🎨", "🔮", "🏆")
+    private val pairIcons = listOf("A", "B", "C", "D", "E", "F", "G", "H")
 
     fun startNewGame(bestMoves: Int = 0, bestTimeSeconds: Int = 0) {
         val deck = mutableListOf<MemoryCard>()
@@ -53,7 +55,9 @@ class MemoryMatchGameEngine(
             isGameComplete = false,
             isInputLocked = false,
             flippedCardIndices = emptyList(),
-            hasUsedHint = false
+            hasUsedHint = false,
+            hintedCardIndices = emptyList(),
+            isNewBest = false
         )
     }
 
@@ -91,12 +95,21 @@ class MemoryMatchGameEngine(
                 updatedCards[secondIdx] = secondCard.copy(isMatched = true)
 
                 val allMatched = updatedCards.all { it.isMatched }
+                val isNewBest = allMatched && (
+                    state.bestMoves == 0 ||
+                        newMoves < state.bestMoves ||
+                        (newMoves == state.bestMoves &&
+                            (state.bestTimeSeconds == 0 || state.elapsedSeconds < state.bestTimeSeconds))
+                    )
 
                 state = state.copy(
                     cards = updatedCards,
                     moves = newMoves,
                     isGameComplete = allMatched,
-                    flippedCardIndices = emptyList()
+                    flippedCardIndices = emptyList(),
+                    bestMoves = if (isNewBest) newMoves else state.bestMoves,
+                    bestTimeSeconds = if (isNewBest) state.elapsedSeconds else state.bestTimeSeconds,
+                    isNewBest = state.isNewBest || isNewBest
                 )
                 return null
             } else {
@@ -115,6 +128,8 @@ class MemoryMatchGameEngine(
     }
 
     fun clearMismatch(firstIndex: Int, secondIndex: Int) {
+        if (!state.isInputLocked || state.flippedCardIndices != listOf(firstIndex, secondIndex)) return
+
         val updatedCards = state.cards.toMutableList()
         if (firstIndex in updatedCards.indices && !updatedCards[firstIndex].isMatched) {
             updatedCards[firstIndex] = updatedCards[firstIndex].copy(isFaceUp = false)
@@ -130,8 +145,25 @@ class MemoryMatchGameEngine(
         )
     }
 
+    fun clearHint() {
+        if (state.hintedCardIndices.isEmpty()) return
+
+        val updatedCards = state.cards.toMutableList()
+        state.hintedCardIndices.forEach { index ->
+            if (index in updatedCards.indices && !updatedCards[index].isMatched) {
+                updatedCards[index] = updatedCards[index].copy(isFaceUp = false)
+            }
+        }
+
+        state = state.copy(
+            cards = updatedCards,
+            isInputLocked = false,
+            hintedCardIndices = emptyList()
+        )
+    }
+
     fun useRevealPairHint(): Boolean {
-        if (state.hasUsedHint || state.isGameComplete) return false
+        if (state.hasUsedHint || state.isGameComplete || state.isInputLocked || state.flippedCardIndices.isNotEmpty()) return false
 
         // Find an unmatched pair
         val unmatchedCards = state.cards.filter { !it.isMatched }
@@ -142,17 +174,15 @@ class MemoryMatchGameEngine(
 
         val updatedCards = state.cards.toMutableList()
         for (idx in targetIndices) {
-            updatedCards[idx] = updatedCards[idx].copy(isFaceUp = true, isMatched = true)
+            updatedCards[idx] = updatedCards[idx].copy(isFaceUp = true)
         }
-
-        val allMatched = updatedCards.all { it.isMatched }
 
         state = state.copy(
             cards = updatedCards,
             hasUsedHint = true,
-            isInputLocked = false,
+            isInputLocked = true,
             flippedCardIndices = emptyList(),
-            isGameComplete = allMatched
+            hintedCardIndices = targetIndices
         )
 
         return true

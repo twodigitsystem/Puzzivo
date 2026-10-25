@@ -65,17 +65,34 @@ class MemoryMatchGameEngineTest {
     }
 
     @Test
-    fun `reveal pair hint matches one unmatched pair and clears flipped indices`() {
-        // Flip 1 card
-        engine.flipCard(0)
-        assertEquals(1, engine.state.flippedCardIndices.size)
-
+    fun `reveal pair hint reveals one unmatched pair and clears flipped indices`() {
         // Use hint
         assertTrue(engine.useRevealPairHint())
         assertTrue(engine.state.hasUsedHint)
 
-        // Flipped indices must be cleared to prevent stale comparison
+        // A temporary hint is locked until the ViewModel clears it.
         assertTrue(engine.state.flippedCardIndices.isEmpty())
+        assertTrue(engine.state.isInputLocked)
+    }
+
+    @Test
+    fun `reveal pair hint temporarily shows cards without completing them`() {
+        assertTrue(engine.useRevealPairHint())
+        assertEquals(2, engine.state.hintedCardIndices.size)
+        assertTrue(engine.state.isInputLocked)
+        assertTrue(engine.state.hintedCardIndices.all { engine.state.cards[it].isFaceUp })
+        assertTrue(engine.state.hintedCardIndices.all { !engine.state.cards[it].isMatched })
+
+        engine.clearHint()
         assertFalse(engine.state.isInputLocked)
+        assertTrue(engine.state.hintedCardIndices.isEmpty())
+        assertTrue(engine.state.cards.all { !it.isMatched })
+    }
+
+    @Test
+    fun `hint cannot be used while a card is already flipped`() {
+        engine.flipCard(0)
+
+        assertFalse(engine.useRevealPairHint())
     }
 }

@@ -5,7 +5,6 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.tds.puzzivo.PuzzivoApplication
-import com.tds.puzzivo.core.ads.AdManager
 import com.tds.puzzivo.core.audio.SoundAndHapticsManager
 import com.tds.puzzivo.core.model.GameType
 import kotlinx.coroutines.Job
@@ -19,7 +18,7 @@ import kotlinx.coroutines.launch
 class MemoryMatchViewModel(application: Application) : AndroidViewModel(application) {
 
     private val repository = (application as PuzzivoApplication).preferencesRepository
-    private val adManager = AdManager(application)
+    private val adManager = (application as PuzzivoApplication).adManager
     private val soundAndHapticsManager = SoundAndHapticsManager(application)
 
     private val engine = MemoryMatchGameEngine()
@@ -27,7 +26,13 @@ class MemoryMatchViewModel(application: Application) : AndroidViewModel(applicat
     private val _uiState = MutableStateFlow(engine.state)
     val uiState: StateFlow<MemoryMatchState> = _uiState.asStateFlow()
 
+    private val _shouldShowInstructions = MutableStateFlow(false)
+    val shouldShowInstructions: StateFlow<Boolean> = _shouldShowInstructions.asStateFlow()
+
     private var timerJob: Job? = null
+    private var mismatchJob: Job? = null
+    private var hintJob: Job? = null
+    private var completionRecorded = false
     private var hapticsEnabled = true
     private var soundEnabled = true
 
@@ -36,6 +41,7 @@ class MemoryMatchViewModel(application: Application) : AndroidViewModel(applicat
             val prefs = repository.userPreferencesFlow.first()
             hapticsEnabled = prefs.hapticsEnabled
             soundEnabled = prefs.soundEnabled
+            _shouldShowInstructions.value = GameType.MEMORY_MATCH.id !in prefs.seenInstructionIds
             engine.startNewGame(
                 bestMoves = prefs.memoryMatchBestMoves,
                 bestTimeSeconds = prefs.memoryMatchBestTime
@@ -45,8 +51,16 @@ class MemoryMatchViewModel(application: Application) : AndroidViewModel(applicat
         adManager.preloadRewardedAd()
     }
 
+    fun onInstructionsDismissed() {
+        _shouldShowInstructions.value = false
+        viewModelScope.launch { repository.markInstructionsSeen(GameType.MEMORY_MATCH) }
+    }
+
     fun onCardClick(index: Int) {
+        val previousState = engine.state
         val mismatchEvent = engine.flipCard(index)
+        if (engine.state == previousState) return
+
         _uiState.value = engine.state
 
         soundAndHapticsManager.playTapSound(soundEnabled)
@@ -59,7 +73,8 @@ class MemoryMatchViewModel(application: Application) : AndroidViewModel(applicat
 
         if (mismatchEvent != null) {
             soundAndHapticsManager.playErrorSound(soundEnabled)
-            viewModelScope.launch {
+            mismatchJob?.cancel()
+            mismatchJob = viewModelScope.launch {
                 delay(800)
                 engine.clearMismatch(mismatchEvent.firstIndex, mismatchEvent.secondIndex)
                 _uiState.value = engine.state
@@ -87,6 +102,12 @@ class MemoryMatchViewModel(application: Application) : AndroidViewModel(applicat
                         soundAndHapticsManager.playVictorySound(soundEnabled)
                         onGameVictory()
                     }
+                    hintJob?.cancel()
+                    hintJob = viewModelScope.launch {
+                        delay(1200)
+                        engine.clearHint()
+                        _uiState.value = engine.state
+                    }
                 }
             },
             onAdUnavailable = {
@@ -98,6 +119,11 @@ class MemoryMatchViewModel(application: Application) : AndroidViewModel(applicat
     fun onRestart() {
         timerJob?.cancel()
         timerJob = null
+        mismatchJob?.cancel()
+        mismatchJob = null
+        hintJob?.cancel()
+        hintJob = null
+        completionRecorded = false
 
         viewModelScope.launch {
             val prefs = repository.userPreferencesFlow.first()
@@ -124,6 +150,8 @@ class MemoryMatchViewModel(application: Application) : AndroidViewModel(applicat
     }
 
     private fun onGameVictory() {
+        if (completionRecorded) return
+        completionRecorded = true
         timerJob?.cancel()
         timerJob = null
 
@@ -136,7 +164,9 @@ class MemoryMatchViewModel(application: Application) : AndroidViewModel(applicat
     }
 
     override fun onCleared() {
-        super.onCleared()
+        timerJob?.cancel()
+        mismatchJob?.cancel()
+        hintJob?.cancel()
         soundAndHapticsManager.release()
     }
 }

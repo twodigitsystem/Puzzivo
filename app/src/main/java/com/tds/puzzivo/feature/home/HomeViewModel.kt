@@ -9,8 +9,10 @@ import com.tds.puzzivo.core.storage.PreferencesRepository
 import com.tds.puzzivo.core.storage.UserPreferences
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.delay
 import java.time.LocalDate
 
 data class HomeUiState(
@@ -26,10 +28,17 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
 
     private val repository = (application as PuzzivoApplication).preferencesRepository
 
+    private val localDateFlow = flow {
+        while (true) {
+            emit(LocalDate.now())
+            delay(60_000)
+        }
+    }
+
     val uiState: StateFlow<HomeUiState> = repository.userPreferencesFlow
-        .map { prefs ->
-            val todayGame = PreferencesRepository.getTodayPickGameType()
-            val todayStr = LocalDate.now().toString()
+        .combine(localDateFlow) { prefs, today ->
+            val todayGame = PreferencesRepository.getTodayPickGameType(today)
+            val todayStr = today.toString()
             val isCompleted = (prefs.todayPickLastDate == todayStr) && prefs.todayPickCompleted
 
             HomeUiState(

@@ -17,6 +17,8 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
+        (application as? PuzzivoApplication)?.initializeAds(this)
+
         // Check for Google Play In-App Updates
         AppUtilities.checkForAppUpdates(this)
 

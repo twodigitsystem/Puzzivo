@@ -44,8 +44,76 @@ class NumberMergeGameEngineTest {
 
     @Test
     fun `move slides and merges adjacent equal tiles correctly`() {
-        // Test merge logic
-        val moved = engine.move(MoveDirection.LEFT) || engine.move(MoveDirection.RIGHT) || engine.move(MoveDirection.UP) || engine.move(MoveDirection.DOWN)
-        assertTrue(moved || engine.state.grid.count { it != 0 } >= 2)
+        engine.setStateForTesting(
+            grid = listOf(
+                2, 2, 2, 2,
+                0, 0, 0, 0,
+                0, 0, 0, 0,
+                0, 0, 0, 0
+            )
+        )
+
+        assertTrue(engine.move(MoveDirection.LEFT))
+        assertEquals(listOf(4, 4, 0, 0), engine.state.grid.take(4))
+        assertEquals(8, engine.state.score)
+    }
+
+    @Test
+    fun `no-op move does not spawn a tile`() {
+        val grid = listOf(
+            2, 0, 0, 0,
+            0, 0, 0, 0,
+            0, 0, 0, 0,
+            0, 0, 0, 0
+        )
+        engine.setStateForTesting(grid)
+
+        assertFalse(engine.move(MoveDirection.LEFT))
+        assertEquals(grid, engine.state.grid)
+    }
+
+    @Test
+    fun `a full board without merges is game over after the final spawn`() {
+        engine.setStateForTesting(
+            grid = listOf(
+                0, 2, 4, 8,
+                16, 32, 64, 128,
+                256, 512, 1024, 2048,
+                4096, 8192, 16384, 32768
+            )
+        )
+
+        assertTrue(engine.move(MoveDirection.LEFT))
+        assertTrue(engine.state.isGameOver)
+    }
+
+    @Test
+    fun `a full board with an available merge is not game over`() {
+        engine.setStateForTesting(
+            grid = listOf(
+                2, 2, 4, 8,
+                16, 32, 64, 128,
+                256, 512, 1024, 2048,
+                4096, 8192, 16384, 32768
+            )
+        )
+
+        assertTrue(engine.move(MoveDirection.LEFT))
+        assertFalse(engine.state.isGameOver)
+    }
+
+    @Test
+    fun `merging 1024 tiles records the 2048 milestone`() {
+        engine.setStateForTesting(
+            grid = listOf(
+                1024, 1024, 0, 0,
+                0, 0, 0, 0,
+                0, 0, 0, 0,
+                0, 0, 0, 0
+            )
+        )
+
+        engine.move(MoveDirection.LEFT)
+        assertTrue(engine.state.hasReached2048)
     }
 }

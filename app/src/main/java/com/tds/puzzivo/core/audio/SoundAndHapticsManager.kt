@@ -7,8 +7,11 @@ import android.os.Build
 import android.os.VibrationEffect
 import android.os.Vibrator
 import android.os.VibratorManager
+import android.util.Log
 
-class SoundAndHapticsManager(private val context: Context) {
+class SoundAndHapticsManager(context: Context) {
+
+    private val appContext = context.applicationContext
 
     private var vibrator: Vibrator? = null
     private var toneGenerator: ToneGenerator? = null
@@ -16,18 +19,18 @@ class SoundAndHapticsManager(private val context: Context) {
     init {
         // Initialize Vibrator
         vibrator = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            val vibratorManager = context.getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as? VibratorManager
+            val vibratorManager = appContext.getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as? VibratorManager
             vibratorManager?.defaultVibrator
         } else {
             @Suppress("DEPRECATION")
-            context.getSystemService(Context.VIBRATOR_SERVICE) as? Vibrator
+            appContext.getSystemService(Context.VIBRATOR_SERVICE) as? Vibrator
         }
 
         // Initialize ToneGenerator for zero-asset sound effects
         try {
             toneGenerator = ToneGenerator(AudioManager.STREAM_MUSIC, 60)
         } catch (e: Exception) {
-            e.printStackTrace()
+            Log.w(TAG, "Unable to initialize tone generator", e)
         }
     }
 
@@ -36,7 +39,7 @@ class SoundAndHapticsManager(private val context: Context) {
         try {
             toneGenerator?.startTone(ToneGenerator.TONE_PROP_BEEP, 30)
         } catch (e: Exception) {
-            e.printStackTrace()
+            Log.w(TAG, "Unable to play tap sound", e)
         }
     }
 
@@ -45,7 +48,7 @@ class SoundAndHapticsManager(private val context: Context) {
         try {
             toneGenerator?.startTone(ToneGenerator.TONE_PROP_ACK, 80)
         } catch (e: Exception) {
-            e.printStackTrace()
+            Log.w(TAG, "Unable to play success sound", e)
         }
     }
 
@@ -54,7 +57,7 @@ class SoundAndHapticsManager(private val context: Context) {
         try {
             toneGenerator?.startTone(ToneGenerator.TONE_PROP_NACK, 100)
         } catch (e: Exception) {
-            e.printStackTrace()
+            Log.w(TAG, "Unable to play error sound", e)
         }
     }
 
@@ -63,7 +66,7 @@ class SoundAndHapticsManager(private val context: Context) {
         try {
             toneGenerator?.startTone(ToneGenerator.TONE_CDMA_ALERT_CALL_GUARD, 200)
         } catch (e: Exception) {
-            e.printStackTrace()
+            Log.w(TAG, "Unable to play victory sound", e)
         }
     }
 
@@ -76,12 +79,16 @@ class SoundAndHapticsManager(private val context: Context) {
                 }
             }
         } catch (e: Exception) {
-            e.printStackTrace()
+            Log.w(TAG, "Unable to trigger haptic feedback", e)
         }
     }
 
     fun release() {
         toneGenerator?.release()
         toneGenerator = null
+    }
+
+    private companion object {
+        const val TAG = "SoundAndHaptics"
     }
 }

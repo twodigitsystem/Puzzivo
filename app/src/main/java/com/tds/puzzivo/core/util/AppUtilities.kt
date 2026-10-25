@@ -8,12 +8,16 @@ import android.util.Log
 import com.google.android.play.core.appupdate.AppUpdateManagerFactory
 import com.google.android.play.core.appupdate.AppUpdateOptions
 import com.google.android.play.core.install.model.AppUpdateType
+import com.google.android.play.core.install.InstallStateUpdatedListener
+import com.google.android.play.core.install.model.InstallStatus
 import com.google.android.play.core.install.model.UpdateAvailability
 import com.google.android.play.core.review.ReviewManagerFactory
 import androidx.core.net.toUri
 
 object AppUtilities {
 
+    const val PRIVACY_POLICY_URL = "https://puzzivo.app/privacy"
+    const val SUPPORT_EMAIL = "support@puzzivo.app"
     private const val PLAY_STORE_URL = "https://play.google.com/store/apps/details?id=com.tds.puzzivo"
     private const val MARKET_URL = "market://details?id=com.tds.puzzivo"
 
@@ -59,25 +63,42 @@ object AppUtilities {
             context.startActivity(marketIntent)
         } catch (e: Exception) {
             val webIntent = Intent(Intent.ACTION_VIEW, PLAY_STORE_URL.toUri())
-            context.startActivity(webIntent)
+            try {
+                context.startActivity(webIntent)
+            } catch (webError: Exception) {
+                Log.e("AppUtilities", "Unable to open Play Store", webError)
+            }
         }
     }
 
     fun checkForAppUpdates(activity: Activity) {
         try {
             val appUpdateManager = AppUpdateManagerFactory.create(activity)
+            lateinit var updateListener: InstallStateUpdatedListener
+            updateListener = InstallStateUpdatedListener { state ->
+                if (state.installStatus() == InstallStatus.DOWNLOADED) {
+                    appUpdateManager.unregisterListener(updateListener)
+                    appUpdateManager.completeUpdate()
+                }
+            }
             val appUpdateInfoTask = appUpdateManager.appUpdateInfo
 
             appUpdateInfoTask.addOnSuccessListener { appUpdateInfo ->
                 if (appUpdateInfo.updateAvailability() == UpdateAvailability.UPDATE_AVAILABLE &&
                     appUpdateInfo.isUpdateTypeAllowed(AppUpdateType.FLEXIBLE)
                 ) {
+                    appUpdateManager.registerListener(updateListener)
                     appUpdateManager.startUpdateFlow(
                         appUpdateInfo,
                         activity,
                         AppUpdateOptions.defaultOptions(AppUpdateType.FLEXIBLE)
                     )
+                } else {
+                    appUpdateManager.unregisterListener(updateListener)
                 }
+            }
+            appUpdateInfoTask.addOnFailureListener {
+                appUpdateManager.unregisterListener(updateListener)
             }
         } catch (e: Exception) {
             Log.e("AppUtilities", "Error checking for app updates", e)

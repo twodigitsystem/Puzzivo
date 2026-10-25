@@ -13,28 +13,45 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.ArrowBack
+import androidx.compose.material.icons.automirrored.outlined.HelpOutline
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.res.stringResource
 import com.google.android.libraries.ads.mobile.sdk.banner.AdSize
 import com.google.android.libraries.ads.mobile.sdk.banner.AdView
 import com.google.android.libraries.ads.mobile.sdk.banner.BannerAdRequest
+import com.tds.puzzivo.PuzzivoApplication
+import com.tds.puzzivo.R
 import com.tds.puzzivo.core.ads.AdUnitIds
 
 @Composable
@@ -42,8 +59,11 @@ fun PuzzivoTopBar(
     modifier: Modifier = Modifier,
     title: String,
     onBackClick: (() -> Unit)? = null,
-    onSettingsClick: (() -> Unit)? = null,
+    onActionClick: (() -> Unit)? = null,
+    actionContentDescription: String = "",
+    actionIcon: ImageVector = Icons.AutoMirrored.Outlined.HelpOutline,
 ) {
+    val backDescription = stringResource(R.string.action_back)
     Surface(
         color = NavySurface,
         modifier = modifier.fillMaxWidth()
@@ -57,12 +77,14 @@ fun PuzzivoTopBar(
         ) {
             Box(modifier = Modifier.width(48.dp)) {
                 if (onBackClick != null) {
-                    IconButton(onClick = onBackClick) {
-                        Text(
-                            text = "◀",
-                            color = TextPrimary,
-                            fontSize = 20.sp,
-                            fontWeight = FontWeight.Bold
+                    IconButton(
+                        onClick = onBackClick,
+                        modifier = Modifier.semantics { contentDescription = backDescription }
+                    ) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Outlined.ArrowBack,
+                            contentDescription = null,
+                            tint = TextPrimary
                         )
                     }
                 }
@@ -78,12 +100,15 @@ fun PuzzivoTopBar(
             )
 
             Box(modifier = Modifier.width(48.dp)) {
-                if (onSettingsClick != null) {
-                    IconButton(onClick = onSettingsClick) {
-                        Text(
-                            text = "⚙",
-                            color = TextPrimary,
-                            fontSize = 22.sp
+                if (onActionClick != null) {
+                    IconButton(
+                        onClick = onActionClick,
+                        modifier = Modifier.semantics { contentDescription = actionContentDescription }
+                    ) {
+                        Icon(
+                            imageVector = actionIcon,
+                            contentDescription = null,
+                            tint = TextPrimary
                         )
                     }
                 }
@@ -105,7 +130,7 @@ fun PuzzivoCard(
         colors = CardDefaults.cardColors(containerColor = backgroundColor),
         border = BorderStroke(1.dp, borderColor),
         modifier = modifier.then(
-            if (onClick != null) Modifier.clickable { onClick() } else Modifier
+            if (onClick != null) Modifier.clickable(role = Role.Button) { onClick() } else Modifier
         )
     ) {
         content()
@@ -205,7 +230,7 @@ fun InstructionDialog(
                 Spacer(modifier = Modifier.height(24.dp))
 
                 PrimaryButton(
-                    text = "Got It!",
+                    text = stringResource(R.string.action_got_it),
                     onClick = onDismiss
                 )
             }
@@ -217,8 +242,8 @@ fun InstructionDialog(
 fun ConfirmationDialog(
     title: String,
     message: String,
-    confirmText: String = "Exit",
-    dismissText: String = "Cancel",
+    confirmText: String,
+    dismissText: String,
     onConfirm: () -> Unit,
     onDismiss: () -> Unit
 ) {
@@ -277,6 +302,9 @@ fun ResultDialog(
     scoreText: String,
     isNewBest: Boolean,
     bestScoreText: String,
+    resultIcon: ImageVector? = null,
+    resultIconContentDescription: String? = null,
+    detailsText: String? = null,
     rewardButtonText: String? = null,
     onRewardClick: (() -> Unit)? = null,
     onReplayClick: () -> Unit,
@@ -292,6 +320,15 @@ fun ResultDialog(
                     .padding(24.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
+                resultIcon?.let { icon ->
+                    Icon(
+                        imageVector = icon,
+                        contentDescription = resultIconContentDescription,
+                        tint = AccentYellow,
+                        modifier = Modifier.padding(bottom = 12.dp)
+                    )
+                }
+
                 Text(
                     text = title,
                     style = MaterialTheme.typography.headlineMedium,
@@ -307,7 +344,7 @@ fun ResultDialog(
                         border = BorderStroke(1.dp, AccentGreen)
                     ) {
                         Text(
-                            text = "🎉 NEW PERSONAL BEST!",
+                            text = stringResource(R.string.dialog_new_best),
                             color = AccentGreen,
                             fontWeight = FontWeight.Bold,
                             fontSize = 14.sp,
@@ -325,10 +362,20 @@ fun ResultDialog(
                     fontWeight = FontWeight.ExtraBold
                 )
 
+                detailsText?.let {
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = it,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = TextSecondary,
+                        textAlign = TextAlign.Center
+                    )
+                }
+
                 Spacer(modifier = Modifier.height(4.dp))
 
                 Text(
-                    text = "Best: $bestScoreText",
+                    text = stringResource(R.string.dialog_best_format, bestScoreText),
                     style = MaterialTheme.typography.bodyMedium,
                     color = TextSecondary
                 )
@@ -337,7 +384,7 @@ fun ResultDialog(
 
                 if (rewardButtonText != null && onRewardClick != null) {
                     PrimaryButton(
-                        text = "🎬 $rewardButtonText",
+                        text = rewardButtonText,
                         onClick = onRewardClick,
                         containerColor = AccentCyan,
                         contentColor = NavyBackground
@@ -346,14 +393,14 @@ fun ResultDialog(
                 }
 
                 PrimaryButton(
-                    text = "Play Again",
+                    text = stringResource(R.string.action_play_again),
                     onClick = onReplayClick
                 )
 
                 Spacer(modifier = Modifier.height(12.dp))
 
                 SecondaryButton(
-                    text = "Main Menu",
+                    text = stringResource(R.string.action_main_menu),
                     onClick = onHomeClick
                 )
             }
@@ -365,6 +412,14 @@ fun ResultDialog(
 fun BannerAdView(
     modifier: Modifier = Modifier
 ) {
+    val context = LocalContext.current
+    val application = context.applicationContext as? PuzzivoApplication
+    val adsReady by (application?.adsReadyFlow ?: kotlinx.coroutines.flow.flowOf(false))
+        .collectAsState(initial = false)
+    var adFailed by remember(adsReady) { mutableStateOf(false) }
+
+    if (!adsReady || adFailed) return
+
     Surface(
         color = NavySurfaceVariant,
         shape = RoundedCornerShape(8.dp),
@@ -380,10 +435,12 @@ fun BannerAdView(
                         ViewGroup.LayoutParams.MATCH_PARENT,
                         ViewGroup.LayoutParams.WRAP_CONTENT
                     )
-                    loadAd(bannerRequest, object : com.google.android.libraries.ads.mobile.sdk.common.AdLoadCallback<com.google.android.libraries.ads.mobile.sdk.banner.BannerAd> {
-                        override fun onAdLoaded(ad: com.google.android.libraries.ads.mobile.sdk.banner.BannerAd) {}
-                        override fun onAdFailedToLoad(adError: com.google.android.libraries.ads.mobile.sdk.common.LoadAdError) {}
-                    })
+                     loadAd(bannerRequest, object : com.google.android.libraries.ads.mobile.sdk.common.AdLoadCallback<com.google.android.libraries.ads.mobile.sdk.banner.BannerAd> {
+                         override fun onAdLoaded(ad: com.google.android.libraries.ads.mobile.sdk.banner.BannerAd) {}
+                         override fun onAdFailedToLoad(adError: com.google.android.libraries.ads.mobile.sdk.common.LoadAdError) {
+                             adFailed = true
+                         }
+                     })
                 }
             },
             onRelease = { adView ->

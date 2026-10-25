@@ -5,7 +5,7 @@ LONG DESCRIPTION:
 
 Puzzivo — Think. Play. Repeat.
 
-Welcome to Puzzivo, your ultimate compact collection of fun, fast, and addictive brain-training puzzle games! Designed for quick breaks and daily mental workouts, Puzzivo brings four popular puzzle genres into one clean, beautifully designed experience.
+Welcome to Puzzivo, a compact collection of fun, fast puzzle games for quick breaks and daily challenges. Puzzivo brings four popular puzzle genres into one clean, beautifully designed experience.
 
 Whether you love numbers, card memory challenges, rapid math calculations, or hidden word searches, Puzzivo has something for every puzzle enthusiast — 100% playable offline with no internet required!
 
@@ -32,8 +32,8 @@ WHY YOU'LL LOVE PUZZIVO
 - Clean & Modern Navy Design: A sleek Material 3 dark navy interface with bright puzzle accents designed for comfortable play during day or night.
 - Lightweight & Fast: Optimized to run smoothly on any Android phone without draining battery or storage.
 
-TRAIN YOUR BRAIN DAILY
+PLAY A QUICK PUZZLE DAILY
 
-Whether you have 2 minutes waiting in line or 15 minutes relaxing at home, Puzzivo offers a quick, satisfying mental workout for all ages.
+Whether you have 2 minutes waiting in line or 15 minutes relaxing at home, Puzzivo offers a quick, satisfying puzzle session for a general audience.
 
 Download Puzzivo today and challenge your mind! Think. Play. Repeat.

@@ -14,10 +14,16 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.HelpOutline
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -27,14 +33,18 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.tds.puzzivo.core.design.AccentCyan
 import com.tds.puzzivo.core.design.AccentGreen
 import com.tds.puzzivo.core.design.AccentYellow
-import com.tds.puzzivo.core.design.BannerAdView
 import com.tds.puzzivo.core.design.CardBorderColor
 import com.tds.puzzivo.core.design.ConfirmationDialog
 import com.tds.puzzivo.core.design.InstructionDialog
@@ -48,6 +58,7 @@ import com.tds.puzzivo.core.design.ResultDialog
 import com.tds.puzzivo.core.design.SecondaryButton
 import com.tds.puzzivo.core.design.TextPrimary
 import com.tds.puzzivo.core.design.TextSecondary
+import com.tds.puzzivo.R
 
 @Composable
 fun MemoryMatchScreen(
@@ -55,9 +66,15 @@ fun MemoryMatchScreen(
     viewModel: MemoryMatchViewModel = viewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val shouldShowInstructions by viewModel.shouldShowInstructions.collectAsState()
     val context = LocalContext.current
     var showInstructions by remember { mutableStateOf(false) }
     var showExitConfirmation by remember { mutableStateOf(false) }
+    var showRestartConfirmation by remember { mutableStateOf(false) }
+
+    LaunchedEffect(shouldShowInstructions) {
+        if (shouldShowInstructions) showInstructions = true
+    }
 
     BackHandler(enabled = uiState.isGameStarted && !uiState.isGameComplete) {
         showExitConfirmation = true
@@ -71,7 +88,7 @@ fun MemoryMatchScreen(
             modifier = Modifier.fillMaxSize()
         ) {
             PuzzivoTopBar(
-                title = "Memory Match",
+                title = stringResource(R.string.memory_match_title),
                 onBackClick = {
                     if (uiState.isGameStarted && !uiState.isGameComplete) {
                         showExitConfirmation = true
@@ -79,13 +96,15 @@ fun MemoryMatchScreen(
                         onBackClick()
                     }
                 },
-                onSettingsClick = { showInstructions = true }
+                onActionClick = { showInstructions = true },
+                actionContentDescription = stringResource(R.string.action_help)
             )
 
             Column(
                 modifier = Modifier
                     .weight(1f)
-                    .padding(16.dp),
+                    .padding(16.dp)
+                    .verticalScroll(rememberScrollState()),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 // Header Counters
@@ -98,7 +117,7 @@ fun MemoryMatchScreen(
                             modifier = Modifier.padding(12.dp),
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
-                            Text(text = "MOVES", fontSize = 12.sp, color = TextSecondary, fontWeight = FontWeight.Bold)
+                            Text(text = stringResource(R.string.memory_match_moves), fontSize = 12.sp, color = TextSecondary, fontWeight = FontWeight.Bold)
                             Text(text = "${uiState.moves}", fontSize = 22.sp, color = AccentCyan, fontWeight = FontWeight.Bold)
                         }
                     }
@@ -108,8 +127,8 @@ fun MemoryMatchScreen(
                             modifier = Modifier.padding(12.dp),
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
-                            Text(text = "TIME", fontSize = 12.sp, color = TextSecondary, fontWeight = FontWeight.Bold)
-                            Text(text = "${uiState.elapsedSeconds}s", fontSize = 22.sp, color = AccentYellow, fontWeight = FontWeight.Bold)
+                            Text(text = stringResource(R.string.memory_match_time), fontSize = 12.sp, color = TextSecondary, fontWeight = FontWeight.Bold)
+                            Text(text = stringResource(R.string.quick_math_seconds_format, uiState.elapsedSeconds), fontSize = 22.sp, color = AccentYellow, fontWeight = FontWeight.Bold)
                         }
                     }
                 }
@@ -162,8 +181,11 @@ fun MemoryMatchScreen(
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     SecondaryButton(
-                        text = "🔍 Reveal Pair (Ad)",
-                        enabled = !uiState.hasUsedHint && !uiState.isGameComplete,
+                        text = stringResource(R.string.hint_reveal_pair),
+                        enabled = !uiState.hasUsedHint &&
+                            !uiState.isGameComplete &&
+                            !uiState.isInputLocked &&
+                            uiState.flippedCardIndices.isEmpty(),
                         onClick = {
                             if (context is Activity) {
                                 viewModel.onRevealPairHintWithReward(context)
@@ -173,23 +195,34 @@ fun MemoryMatchScreen(
                     )
 
                     PrimaryButton(
-                        text = "Restart",
-                        onClick = { viewModel.onRestart() },
+                        text = stringResource(R.string.action_restart),
+                        onClick = {
+                            if (uiState.isGameStarted && !uiState.isGameComplete) {
+                                showRestartConfirmation = true
+                            } else {
+                                viewModel.onRestart()
+                            }
+                        },
                         modifier = Modifier.weight(1f)
                     )
                 }
+                Text(
+                    text = stringResource(R.string.hint_watch_ad),
+                    style = androidx.compose.material3.MaterialTheme.typography.bodySmall,
+                    color = TextSecondary,
+                    modifier = Modifier.padding(top = 6.dp)
+                )
             }
 
-            BannerAdView(modifier = Modifier.padding(16.dp))
         }
     }
 
     if (showExitConfirmation) {
         ConfirmationDialog(
-            title = "Leave Game?",
-            message = "Are you sure you want to leave? Your current card match run will be lost.",
-            confirmText = "Leave",
-            dismissText = "Keep Playing",
+            title = stringResource(R.string.dialog_leave_title),
+            message = stringResource(R.string.memory_match_leave_message),
+            confirmText = stringResource(R.string.action_leave),
+            dismissText = stringResource(R.string.action_keep_playing),
             onConfirm = {
                 showExitConfirmation = false
                 onBackClick()
@@ -198,21 +231,46 @@ fun MemoryMatchScreen(
         )
     }
 
+    if (showRestartConfirmation) {
+        ConfirmationDialog(
+            title = stringResource(R.string.memory_match_restart_title),
+            message = stringResource(R.string.memory_match_restart_message),
+            confirmText = stringResource(R.string.action_restart),
+            dismissText = stringResource(R.string.action_keep_playing),
+            onConfirm = {
+                showRestartConfirmation = false
+                viewModel.onRestart()
+            },
+            onDismiss = { showRestartConfirmation = false }
+        )
+    }
+
     if (showInstructions) {
         InstructionDialog(
-            title = "Memory Match Rules",
-            description = "Tap a card to flip it over, then tap a second card. If both cards match, they stay face-up! Find all 8 matching pairs in as few moves and seconds as possible.",
-            onDismiss = { showInstructions = false }
+            title = stringResource(R.string.memory_match_rules_title),
+            description = stringResource(R.string.memory_match_rules_description),
+            onDismiss = {
+                showInstructions = false
+                viewModel.onInstructionsDismissed()
+            }
         )
     }
 
     if (uiState.isGameComplete) {
-        val isNewBest = uiState.bestMoves == 0 || uiState.moves <= uiState.bestMoves
         ResultDialog(
-            title = "Puzzle Solved!",
-            scoreText = "${uiState.moves} moves in ${uiState.elapsedSeconds}s",
-            isNewBest = isNewBest,
-            bestScoreText = if (uiState.bestMoves > 0) "${uiState.bestMoves} moves" else "${uiState.moves} moves",
+            title = stringResource(R.string.memory_match_complete),
+            scoreText = stringResource(
+                R.string.memory_match_score_format,
+                pluralStringResource(R.plurals.memory_match_moves_format, uiState.moves, uiState.moves),
+                pluralStringResource(R.plurals.memory_match_seconds_format, uiState.elapsedSeconds, uiState.elapsedSeconds)
+            ),
+            isNewBest = uiState.isNewBest,
+            bestScoreText = if (uiState.bestMoves > 0) {
+                pluralStringResource(R.plurals.memory_match_best_moves_format, uiState.bestMoves, uiState.bestMoves)
+            } else {
+                pluralStringResource(R.plurals.memory_match_best_moves_format, uiState.moves, uiState.moves)
+            },
+            detailsText = stringResource(R.string.memory_match_result_detail),
             onReplayClick = { viewModel.onRestart() },
             onHomeClick = onBackClick
         )
@@ -245,6 +303,11 @@ fun MemoryCardItem(
         isFaceUp -> AccentCyan
         else -> CardBorderColor
     }
+    val cardDescription = when {
+        isMatched -> stringResource(R.string.memory_match_card_matched, card.icon)
+        isFaceUp -> stringResource(R.string.memory_match_card_revealed, card.icon)
+        else -> stringResource(R.string.memory_match_card_face_down)
+    }
 
     Surface(
         color = bgColor,
@@ -254,7 +317,11 @@ fun MemoryCardItem(
             .graphicsLayer {
                 rotationY = rotation
             }
-            .clickable(enabled = card != null && !isFaceUp) { onClick() }
+            .semantics { contentDescription = cardDescription }
+            .clickable(
+                enabled = card != null && !isFaceUp,
+                role = Role.Button
+            ) { onClick() }
     ) {
         Box(
             contentAlignment = Alignment.Center,
@@ -272,10 +339,10 @@ fun MemoryCardItem(
                     fontSize = 28.sp
                 )
             } else {
-                Text(
-                    text = "❓",
-                    fontSize = 20.sp,
-                    color = TextSecondary.copy(alpha = 0.5f)
+                Icon(
+                    imageVector = Icons.AutoMirrored.Outlined.HelpOutline,
+                    contentDescription = null,
+                    tint = TextSecondary.copy(alpha = 0.5f)
                 )
             }
         }

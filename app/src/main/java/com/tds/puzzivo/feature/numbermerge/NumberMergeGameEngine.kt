@@ -17,7 +17,9 @@ data class NumberMergeState(
     val bestScore: Int = 0,
     val isGameOver: Boolean = false,
     val hasReached2048: Boolean = false,
-    val canUndo: Boolean = false
+    val canUndo: Boolean = false,
+    val moveCount: Int = 0,
+    val isNewBest: Boolean = false
 )
 
 class NumberMergeGameEngine(
@@ -40,7 +42,9 @@ class NumberMergeGameEngine(
             bestScore = bestScore,
             isGameOver = false,
             hasReached2048 = false,
-            canUndo = false
+            canUndo = false,
+            moveCount = 0,
+            isNewBest = false
         )
     }
 
@@ -79,7 +83,9 @@ class NumberMergeGameEngine(
             bestScore = newBestScore,
             isGameOver = gameOver,
             hasReached2048 = reached2048Now,
-            canUndo = true
+            canUndo = true,
+            moveCount = state.moveCount + 1,
+            isNewBest = state.isNewBest || newScore > state.bestScore
         )
 
         return true
@@ -96,6 +102,28 @@ class NumberMergeGameEngine(
         )
         previousSnapshot = null
         return true
+    }
+
+    /** Test-only state injection for deterministic board-rule tests. */
+    internal fun setStateForTesting(
+        grid: List<Int>,
+        score: Int = 0,
+        bestScore: Int = 0,
+        isGameOver: Boolean = false
+    ) {
+        require(grid.size == 16) { "Number Merge boards must contain 16 cells" }
+        require(grid.all { it >= 0 }) { "Number Merge tiles cannot be negative" }
+        previousSnapshot = null
+        state = NumberMergeState(
+            grid = grid,
+            score = score,
+            bestScore = bestScore,
+            isGameOver = isGameOver,
+            hasReached2048 = grid.contains(2048),
+            canUndo = false,
+            moveCount = 0,
+            isNewBest = false
+        )
     }
 
     private fun spawnTile(grid: MutableList<Int>) {

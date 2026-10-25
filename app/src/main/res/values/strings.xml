@@ -2,25 +2,77 @@
     <string name="app_name">Puzzivo</string>
 
     <!-- General Navigation & Actions -->
-    <string name="nav_back">Back</string>
-    <string name="nav_settings">Settings</string>
     <string name="action_restart">Restart</string>
     <string name="action_main_menu">Main Menu</string>
     <string name="action_play_again">Play Again</string>
+    <string name="action_got_it">Got It!</string>
+    <string name="action_new_game">New Game</string>
+    <string name="action_back">Navigate back</string>
+    <string name="action_help">How to play</string>
+    <string name="action_settings">Open settings</string>
+    <string name="action_play_today">Play Daily Pick</string>
+    <string name="action_pause">Pause</string>
+    <string name="action_resume">Resume</string>
     <string name="action_leave">Leave</string>
+    <string name="action_keep_playing">Keep Playing</string>
     <string name="action_cancel">Cancel</string>
+    <string name="action_reset_data">Reset Data</string>
 
     <!-- Home Screen -->
-    <string name="home_todays_pick">TODAY\'S PICK</string>
+    <string name="home_todays_pick">DAILY PICK</string>
     <string name="home_daily_streak">Streak</string>
     <string name="home_games_played">Games Played</string>
     <string name="home_select_game">Choose a Mini-Game</string>
+    <string name="home_brand_tagline">Think. Play. Repeat.</string>
+    <plurals name="home_days_format">
+        <item quantity="one">%1$d Day</item>
+        <item quantity="other">%1$d Days</item>
+    </plurals>
+    <string name="home_streak_summary">%1$s (Best: %2$d)</string>
+    <string name="home_completed">Completed</string>
+    <string name="home_best_score_format">Best Score: %1$d</string>
+    <plurals name="home_best_moves_format">
+        <item quantity="one">Best: %1$d move</item>
+        <item quantity="other">Best: %1$d moves</item>
+    </plurals>
+    <string name="home_no_score_yet">No score yet</string>
+    <string name="home_solved_format">Solved: %1$d / %2$d</string>
+    <string name="home_game_card_description">%1$s. %2$s. %3$s. Double tap to play.</string>
 
-    <!-- Game Names -->
-    <string name="game_number_merge">Number Merge</string>
-    <string name="game_memory_match">Memory Match</string>
-    <string name="game_quick_math">Quick Math</string>
-    <string name="game_word_search">Word Search</string>
+    <!-- Game metadata -->
+    <string name="game_number_merge_title">Number Merge</string>
+    <string name="game_number_merge_subtitle">Slide &amp; Merge Tiles</string>
+    <string name="game_number_merge_description">Swipe tiles on a 4×4 grid to combine matching numbers and reach higher scores!</string>
+    <string name="game_memory_match_title">Memory Match</string>
+    <string name="game_memory_match_subtitle">Find Matching Pairs</string>
+    <string name="game_memory_match_description">Flip cards to test your memory and find all 8 matching pairs in as few moves as possible.</string>
+    <string name="game_quick_math_title">Quick Math</string>
+    <string name="game_quick_math_subtitle">60s Timed Challenge</string>
+    <string name="game_quick_math_description">Solve mental arithmetic questions against a 60-second timer to build your score streak!</string>
+    <string name="game_word_search_title">Word Search</string>
+    <string name="game_word_search_subtitle">Find Hidden Words</string>
+    <string name="game_word_search_description">Locate target words hidden horizontally, vertically, or diagonally inside the letter grid.</string>
+    <string name="game_mini_sudoku_title">Mini Sudoku</string>
+    <string name="game_mini_sudoku_subtitle">Fill the 6×6 Grid</string>
+    <string name="game_mini_sudoku_description">Complete rows, columns, and 2×3 boxes without repeating a number.</string>
+    <string name="game_minesweeper_title">Minesweeper</string>
+    <string name="game_minesweeper_subtitle">Clear the Minefield</string>
+    <string name="game_minesweeper_description">Reveal safe cells, count nearby mines, and flag danger before it is too late.</string>
+    <string name="game_pattern_recall_title">Pattern Recall</string>
+    <string name="game_pattern_recall_subtitle">Remember the Lights</string>
+    <string name="game_pattern_recall_description">Watch a pattern, then repeat it as the sequence grows longer.</string>
+    <string name="game_word_scramble_title">Word Scramble</string>
+    <string name="game_word_scramble_subtitle">Untangle the Letters</string>
+    <string name="game_word_scramble_description">Rearrange scrambled letters into familiar words and build a perfect streak.</string>
+    <string name="game_lights_out_title">Lights Out</string>
+    <string name="game_lights_out_subtitle">Turn Every Light Off</string>
+    <string name="game_lights_out_description">Tap a tile to toggle it and its neighbors until the board is dark.</string>
+    <string name="game_nonogram_title">Nonogram</string>
+    <string name="game_nonogram_subtitle">Reveal the Picture</string>
+    <string name="game_nonogram_description">Use row and column clues to discover a hidden pixel pattern.</string>
+    <string name="game_hex_merge_title">Hex Merge</string>
+    <string name="game_hex_merge_subtitle">Merge on a Hex Board</string>
+    <string name="game_hex_merge_description">Move numbered hex tiles, merge matching values, and chase a high score.</string>
 
     <!-- Settings Screen -->
     <string name="settings_title">Settings</string>
@@ -30,24 +82,190 @@
     <string name="settings_haptics">Haptic Feedback</string>
     <string name="settings_haptics_desc">Vibrate on key actions and matches</string>
     <string name="settings_spread_word">Spread the Word</string>
-    <string name="settings_share_app">📲 Share Puzzivo with Friends</string>
-    <string name="settings_rate_app">⭐ Rate &amp; Review on Play Store</string>
+    <string name="settings_share_app">Share Puzzivo with Friends</string>
+    <string name="settings_rate_app">Rate &amp; Review on Play Store</string>
     <string name="settings_about_data">About &amp; Data</string>
-    <string name="settings_privacy_policy">🔒 Privacy Policy</string>
-    <string name="settings_support">📧 Support &amp; Contact</string>
-    <string name="settings_reset_data">🗑️ Reset High Scores &amp; Progress</string>
+    <string name="settings_privacy_policy">Privacy Policy</string>
+    <string name="settings_privacy_choices">Ad Privacy Choices</string>
+    <string name="settings_support">Support &amp; Contact</string>
+    <string name="settings_reset_data">Reset High Scores &amp; Progress</string>
+    <string name="settings_share_desc">Send Puzzivo to someone who enjoys quick puzzles.</string>
+    <string name="settings_rate_desc">Tell us what you think on Google Play.</string>
+    <string name="settings_privacy_desc">Read how Puzzivo handles data and backups.</string>
+    <string name="settings_privacy_choices_desc">Review your advertising consent choices.</string>
+    <string name="settings_support_desc">Get help or send feedback to the Puzzivo team.</string>
+    <string name="settings_reset_desc">Permanently clear scores, streaks, and puzzle history.</string>
+    <string name="settings_reset_title">Reset All Progress?</string>
+    <string name="settings_reset_message">This will permanently clear all your high scores, move records, daily streaks, and solved puzzle history.</string>
 
     <!-- Dialogs -->
-    <string name="dialog_reset_title">Reset All Progress?</string>
-    <string name="dialog_reset_message">This will permanently clear all your high scores, move records, daily streaks, and solved puzzle history.</string>
-    <string name="dialog_reset_confirm">Reset Data</string>
     <string name="dialog_leave_title">Leave Game?</string>
-    <string name="dialog_leave_message">Are you sure you want to leave your current run?</string>
-    <string name="dialog_new_best">🎉 NEW PERSONAL BEST!</string>
+    <string name="dialog_new_best">NEW PERSONAL BEST!</string>
+    <string name="dialog_best_format">Best: %1$s</string>
 
     <!-- Reward Buttons -->
-    <string name="hint_undo">↩️ Undo Last Move (Ad)</string>
-    <string name="hint_reveal_pair">🔍 Reveal Pair (Ad)</string>
-    <string name="hint_add_time">⏳ +15 Seconds (Ad)</string>
-    <string name="hint_reveal_word">💡 Reveal Word (Ad)</string>
+    <string name="hint_undo">Undo</string>
+    <string name="hint_reveal_pair">Reveal Pair</string>
+    <string name="hint_add_time">+15 Seconds</string>
+    <string name="hint_reveal_word">Reveal Word</string>
+    <string name="hint_watch_ad">Watch an ad to use this hint</string>
+
+    <!-- Number Merge -->
+    <string name="number_merge_title">Number Merge</string>
+    <string name="number_merge_score">Score</string>
+    <string name="number_merge_best">Best</string>
+    <string name="number_merge_milestone">2048 milestone reached — keep playing!</string>
+    <string name="number_merge_leave_message">Your current score will be saved locally, but your active undo move history will reset.</string>
+    <string name="number_merge_new_game_title">Start a New Game?</string>
+    <string name="number_merge_new_game_message">Your current board and score will be discarded.</string>
+    <string name="number_merge_rules_title">Number Merge Rules</string>
+    <string name="number_merge_rules_description">Swipe up, down, left, or right to slide tiles. When two equal numbers touch during a swipe, they merge into one with double the value. Your score increases with each merge.</string>
+    <string name="number_merge_game_over">Game Over!</string>
+    <plurals name="number_merge_score_format">
+        <item quantity="one">%1$d point</item>
+        <item quantity="other">%1$d points</item>
+    </plurals>
+    <plurals name="number_merge_result_detail">
+        <item quantity="one">%1$d move played</item>
+        <item quantity="other">%1$d moves played</item>
+    </plurals>
+    <string name="number_merge_empty_tile">Empty tile</string>
+    <string name="number_merge_tile_description">Tile %1$d</string>
+
+    <!-- Memory Match -->
+    <string name="memory_match_title">Memory Match</string>
+    <string name="memory_match_moves">Moves</string>
+    <string name="memory_match_time">Time</string>
+    <string name="memory_match_leave_message">Are you sure you want to leave? Your current card match run will be lost.</string>
+    <string name="memory_match_restart_title">Restart Game?</string>
+    <string name="memory_match_restart_message">Your current card-match run will be discarded.</string>
+    <string name="memory_match_rules_title">Memory Match Rules</string>
+    <string name="memory_match_rules_description">Tap a card to flip it over, then tap a second card. Matching cards stay face-up. Find all 8 pairs in as few moves and seconds as possible.</string>
+    <string name="memory_match_complete">Puzzle Solved!</string>
+    <string name="memory_match_score_format">%1$s in %2$s</string>
+    <plurals name="memory_match_moves_format">
+        <item quantity="one">%1$d move</item>
+        <item quantity="other">%1$d moves</item>
+    </plurals>
+    <plurals name="memory_match_seconds_format">
+        <item quantity="one">%1$d second</item>
+        <item quantity="other">%1$d seconds</item>
+    </plurals>
+    <plurals name="memory_match_best_moves_format">
+        <item quantity="one">%1$d move</item>
+        <item quantity="other">%1$d moves</item>
+    </plurals>
+    <string name="memory_match_result_detail">Keep improving your memory and aim for fewer moves.</string>
+    <string name="memory_match_card_face_down">Face-down memory card</string>
+    <string name="memory_match_card_revealed">Revealed card %1$s</string>
+    <string name="memory_match_card_matched">Matched card %1$s</string>
+
+    <!-- Quick Math -->
+    <string name="quick_math_title">Quick Math</string>
+    <string name="quick_math_timer">Timer</string>
+    <string name="quick_math_score">Score</string>
+    <string name="quick_math_seconds_format">%1$ds</string>
+    <string name="quick_math_paused">Paused</string>
+    <string name="quick_math_correct">Correct</string>
+    <string name="quick_math_not_quite">Not quite — keep going</string>
+    <string name="quick_math_leave_title">Quit Quick Math?</string>
+    <string name="quick_math_leave_message">Are you sure you want to exit? Your current timed run will be ended.</string>
+    <string name="quick_math_rules_title">Quick Math Rules</string>
+    <string name="quick_math_rules_description">Answer mental math questions before the 60-second timer runs out. Each correct answer earns 10 points. Build a high-score streak as you progress.</string>
+    <string name="quick_math_time_up">Time Up!</string>
+    <string name="quick_math_score_format">%1$d Pts • %2$d/%3$d</string>
+    <string name="quick_math_best_format">%1$d Pts</string>
+    <string name="quick_math_result_detail">%1$d%% accuracy across %2$s</string>
+    <plurals name="quick_math_questions_format">
+        <item quantity="one">%1$d question</item>
+        <item quantity="other">%1$d questions</item>
+    </plurals>
+
+    <!-- Word Search -->
+    <string name="word_search_title">Word Search</string>
+    <plurals name="word_search_words_progress">
+        <item quantity="one">%1$d / %2$d Word</item>
+        <item quantity="other">%1$d / %2$d Words</item>
+    </plurals>
+    <string name="word_search_select_cells">Select a start cell, then an end cell.</string>
+    <string name="word_search_next_puzzle">Next Puzzle</string>
+    <string name="word_search_leave_title">Leave Puzzle?</string>
+    <string name="word_search_leave_message">Are you sure you want to leave this Word Search puzzle?</string>
+    <string name="word_search_rules_title">Word Search Rules</string>
+    <string name="word_search_rules_description">Touch and drag a straight line over the letter grid to highlight target words. Words may run horizontally, vertically, diagonally, forwards, or backwards. For keyboard and screen-reader access, tap the start cell and then the end cell.</string>
+    <string name="word_search_complete">Puzzle Complete!</string>
+    <string name="word_search_complete_score">Found All Words!</string>
+    <plurals name="word_search_complete_detail">
+        <item quantity="one">All %1$d target word found.</item>
+        <item quantity="other">All %1$d target words found.</item>
+    </plurals>
+    <string name="word_search_completed_label">Completed</string>
+    <string name="word_search_cell_description">Row %1$d, column %2$d, letter %3$s, %4$s</string>
+    <string name="word_search_cell_unselected">not selected</string>
+    <string name="word_search_cell_selected">selected</string>
+    <string name="word_search_cell_found">part of a found word</string>
+    <string name="word_search_cell_hinted">highlighted by a hint</string>
+    <string name="home_new_game">New game</string>
+
+    <!-- New games -->
+    <string name="sudoku_title">Mini Sudoku</string>
+    <string name="sudoku_rules">Fill every row, column, and 2×3 box with numbers 1 through 6. Each number can appear only once in each group.</string>
+    <string name="sudoku_mistakes">Mistakes: %1$d</string>
+    <string name="sudoku_complete">Sudoku Complete!</string>
+    <string name="sudoku_hint">Hint</string>
+    <string name="sudoku_clear">Clear</string>
+    <string name="sudoku_new_puzzle">New Puzzle</string>
+    <string name="sudoku_cell">Row %1$d, column %2$d, %3$s</string>
+    <string name="sudoku_empty">empty</string>
+    <string name="sudoku_filled">number %1$d</string>
+
+    <string name="minesweeper_title">Minesweeper</string>
+    <string name="minesweeper_rules">Reveal every safe cell. The number on a cell tells you how many mines touch it. Switch to Flag mode to mark a suspected mine.</string>
+    <string name="minesweeper_mines_left">Mines: %1$d</string>
+    <string name="minesweeper_won">Minefield Cleared!</string>
+    <string name="minesweeper_lost">Boom! Try Again</string>
+    <string name="minesweeper_reveal">Reveal</string>
+    <string name="minesweeper_flag">Flag</string>
+    <string name="minesweeper_cell">Row %1$d, column %2$d, %3$s</string>
+    <string name="minesweeper_hidden">hidden</string>
+    <string name="minesweeper_mine">mine</string>
+    <string name="minesweeper_flagged">flagged</string>
+    <plurals name="minesweeper_number">
+        <item quantity="one">%1$d nearby mine</item>
+        <item quantity="other">%1$d nearby mines</item>
+    </plurals>
+
+    <string name="pattern_recall_title">Pattern Recall</string>
+    <string name="pattern_recall_rules">Watch the highlighted cells, then tap them in the same order. The pattern grows after every successful round.</string>
+    <string name="pattern_recall_round">Round %1$d</string>
+    <string name="pattern_recall_watch">Watch the pattern</string>
+    <string name="pattern_recall_repeat">Repeat the pattern</string>
+    <string name="pattern_recall_game_over">Pattern Complete</string>
+
+    <string name="word_scramble_title">Word Scramble</string>
+    <string name="word_scramble_rules">Tap letters to build the hidden word. Tap a selected letter to remove it, or use clear to start over.</string>
+    <string name="word_scramble_round">Round %1$d</string>
+    <string name="word_scramble_submit">Submit</string>
+    <string name="word_scramble_clear">Clear</string>
+    <string name="word_scramble_correct">Correct!</string>
+    <string name="word_scramble_wrong">Not quite</string>
+    <string name="word_scramble_complete">Scramble Complete!</string>
+
+    <string name="lights_out_title">Lights Out</string>
+    <string name="lights_out_rules">Tap a light to toggle it and its up, down, left, and right neighbors. Turn every light off.</string>
+    <string name="lights_out_moves">Moves: %1$d</string>
+    <string name="lights_out_complete">Board Cleared!</string>
+
+    <string name="nonogram_title">Nonogram</string>
+    <string name="nonogram_rules">Fill cells to match the clues. Numbers describe consecutive filled groups separated by at least one empty cell.</string>
+    <string name="nonogram_complete">Picture Revealed!</string>
+    <string name="nonogram_fill">Fill</string>
+    <string name="nonogram_mark_empty">Mark Empty</string>
+    <string name="nonogram_reset">Reset Grid</string>
+
+    <string name="hex_merge_title">Hex Merge</string>
+    <string name="hex_merge_rules">Use the six direction controls to move the hex tiles. Matching values merge when they meet.</string>
+    <string name="hex_merge_score">Score: %1$d</string>
+    <string name="hex_merge_game_over">No More Moves</string>
+    <string name="settings_version_format">Puzzivo v%1$s</string>
 </resources>

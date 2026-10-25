@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<resources>
-    <color name="navy_background">#0F172A</color>
-    <color name="navy_surface">#1E293B</color>
-    <color name="accent_yellow">#FACC15</color>
-    <color name="accent_cyan">#06B6D4</color>
-    <color name="accent_green">#22C55E</color>
-    <color name="accent_magenta">#EC4899</color>
-</resources>

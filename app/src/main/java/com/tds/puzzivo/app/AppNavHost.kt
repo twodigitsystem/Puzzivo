@@ -13,6 +13,13 @@ import com.tds.puzzivo.feature.numbermerge.NumberMergeScreen
 import com.tds.puzzivo.feature.quickmath.QuickMathScreen
 import com.tds.puzzivo.feature.settings.SettingsScreen
 import com.tds.puzzivo.feature.wordsearch.WordSearchScreen
+import com.tds.puzzivo.feature.sudoku.SudokuScreen
+import com.tds.puzzivo.feature.minesweeper.MinesweeperScreen
+import com.tds.puzzivo.feature.patternrecall.PatternRecallScreen
+import com.tds.puzzivo.feature.wordscramble.WordScrambleScreen
+import com.tds.puzzivo.feature.lightsout.LightsOutScreen
+import com.tds.puzzivo.feature.nonogram.NonogramScreen
+import com.tds.puzzivo.feature.hexmerge.HexMergeScreen
 
 object NavRoutes {
     const val HOME = "home"
@@ -21,6 +28,13 @@ object NavRoutes {
     const val MEMORY_MATCH = "game/memory_match"
     const val QUICK_MATH = "game/quick_math"
     const val WORD_SEARCH = "game/word_search"
+    const val MINI_SUDOKU = "game/mini_sudoku"
+    const val MINESWEEPER = "game/minesweeper"
+    const val PATTERN_RECALL = "game/pattern_recall"
+    const val WORD_SCRAMBLE = "game/word_scramble"
+    const val LIGHTS_OUT = "game/lights_out"
+    const val NONOGRAM = "game/nonogram"
+    const val HEX_MERGE = "game/hex_merge"
 }
 
 @Composable
@@ -41,6 +55,13 @@ fun AppNavHost(
                         GameType.MEMORY_MATCH -> NavRoutes.MEMORY_MATCH
                         GameType.QUICK_MATH -> NavRoutes.QUICK_MATH
                         GameType.WORD_SEARCH -> NavRoutes.WORD_SEARCH
+                        GameType.MINI_SUDOKU -> NavRoutes.MINI_SUDOKU
+                        GameType.MINESWEEPER -> NavRoutes.MINESWEEPER
+                        GameType.PATTERN_RECALL -> NavRoutes.PATTERN_RECALL
+                        GameType.WORD_SCRAMBLE -> NavRoutes.WORD_SCRAMBLE
+                        GameType.LIGHTS_OUT -> NavRoutes.LIGHTS_OUT
+                        GameType.NONOGRAM -> NavRoutes.NONOGRAM
+                        GameType.HEX_MERGE -> NavRoutes.HEX_MERGE
                     }
                     navController.navigate(route)
                 },
@@ -78,6 +99,28 @@ fun AppNavHost(
             WordSearchScreen(
                 onBackClick = { navController.popBackStack() }
             )
+        }
+
+        composable(NavRoutes.MINI_SUDOKU) {
+            SudokuScreen(onBackClick = { navController.popBackStack() })
+        }
+        composable(NavRoutes.MINESWEEPER) {
+            MinesweeperScreen(onBackClick = { navController.popBackStack() })
+        }
+        composable(NavRoutes.PATTERN_RECALL) {
+            PatternRecallScreen(onBackClick = { navController.popBackStack() })
+        }
+        composable(NavRoutes.WORD_SCRAMBLE) {
+            WordScrambleScreen(onBackClick = { navController.popBackStack() })
+        }
+        composable(NavRoutes.LIGHTS_OUT) {
+            LightsOutScreen(onBackClick = { navController.popBackStack() })
+        }
+        composable(NavRoutes.NONOGRAM) {
+            NonogramScreen(onBackClick = { navController.popBackStack() })
+        }
+        composable(NavRoutes.HEX_MERGE) {
+            HexMergeScreen(onBackClick = { navController.popBackStack() })
         }
     }
 }

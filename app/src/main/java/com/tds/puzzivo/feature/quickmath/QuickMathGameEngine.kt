@@ -19,7 +19,8 @@ data class QuickMathState(
     val isGameComplete: Boolean = false,
     val isPaused: Boolean = false,
     val hasUsedTimeHint: Boolean = false,
-    val lastAnswerWasCorrect: Boolean? = null
+    val lastAnswerWasCorrect: Boolean? = null,
+    val isNewBest: Boolean = false
 )
 
 class QuickMathGameEngine(
@@ -41,7 +42,8 @@ class QuickMathGameEngine(
             isGameComplete = false,
             isPaused = false,
             hasUsedTimeHint = false,
-            lastAnswerWasCorrect = null
+            lastAnswerWasCorrect = null,
+            isNewBest = false
         )
     }
 
@@ -63,7 +65,8 @@ class QuickMathGameEngine(
             bestScore = newBestScore,
             questionsAnswered = newQuestionsAnswered,
             correctAnswersCount = newCorrectCount,
-            lastAnswerWasCorrect = isCorrect
+            lastAnswerWasCorrect = isCorrect,
+            isNewBest = state.isNewBest || newScore > state.bestScore
         )
 
         return isCorrect
@@ -90,7 +93,7 @@ class QuickMathGameEngine(
     }
 
     fun add15SecondsHint(): Boolean {
-        if (state.hasUsedTimeHint || state.isGameComplete) return false
+        if (state.hasUsedTimeHint || state.isGameComplete || state.isPaused) return false
 
         val newTime = state.timeRemainingSeconds + 15
         state = state.copy(

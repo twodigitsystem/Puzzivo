@@ -20,7 +20,11 @@ android {
     }
 
     buildTypes {
+        debug {
+            resValue("string", "admob_application_id", "ca-app-pub-3940256099942544~3347511713")
+        }
         release {
+            resValue("string", "admob_application_id", "ca-app-pub-7375786078266181~7139790190")
             optimization {
                 enable = true
                 packageScope = setOf("androidx.**", "kotlin.**", "kotlinx.**")
@@ -40,6 +44,7 @@ android {
     buildFeatures {
         compose = true
         buildConfig = true
+        resValues = true
     }
 }
 
@@ -50,8 +55,10 @@ dependencies {
     implementation(libs.androidx.compose.ui)
     implementation(libs.androidx.compose.ui.graphics)
     implementation(libs.androidx.compose.ui.tooling.preview)
+    implementation(libs.androidx.compose.material.icons.extended)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
+    implementation(libs.androidx.lifecycle.runtime.compose)
     implementation(libs.androidx.navigation.compose)
     implementation(libs.androidx.datastore.preferences)
     implementation(libs.ads.mobile.sdk)

@@ -9,7 +9,7 @@ class WordSearchGameEngine {
 
     fun loadPuzzle(puzzleIndex: Int = 0) {
         val puzzles = WordSearchRepository.puzzles
-        val index = if (puzzleIndex >= puzzles.size) 0 else puzzleIndex.coerceIn(puzzles.indices)
+        val index = puzzleIndex.coerceIn(puzzles.indices)
         val selectedPuzzle = puzzles[index]
 
         state = WordSearchState(
@@ -26,6 +26,7 @@ class WordSearchGameEngine {
 
     fun selectStartCell(row: Int, col: Int) {
         val puzzle = state.puzzle ?: return
+        if (state.isGameComplete) return
         if (row !in 0 until puzzle.rows || col !in 0 until puzzle.cols) return
 
         state = state.copy(
@@ -35,6 +36,7 @@ class WordSearchGameEngine {
 
     fun updateSelection(endRow: Int, endCol: Int) {
         val puzzle = state.puzzle ?: return
+        if (state.isGameComplete) return
         val startCell = state.selectedCells.firstOrNull() ?: return
 
         if (endRow !in 0 until puzzle.rows || endCol !in 0 until puzzle.cols) return
@@ -51,15 +53,13 @@ class WordSearchGameEngine {
 
     fun confirmSelection(): Boolean {
         val puzzle = state.puzzle ?: return false
+        if (state.isGameComplete) return false
         val selected = state.selectedCells
         if (selected.isEmpty()) return false
 
-        val selectedWord = selected.map { puzzle.grid[it.row][it.col] }.joinToString("")
-        val reversedWord = selectedWord.reversed()
-
         val matchingWord = puzzle.targetWords.find { tw ->
             !state.foundWords.contains(tw.word) &&
-                    (tw.word.equals(selectedWord, ignoreCase = true) || tw.word.equals(reversedWord, ignoreCase = true))
+                    selectionMatchesTarget(selected, tw)
         }
 
         if (matchingWord != null) {
@@ -143,5 +143,53 @@ class WordSearchGameEngine {
         }
 
         return result
+    }
+
+    private fun selectionMatchesTarget(
+        selected: List<CellPosition>,
+        target: TargetWord
+    ): Boolean {
+        if (selected.size != target.word.length) return false
+
+        val expected = pathBetween(
+            startRow = target.startRow,
+            startCol = target.startCol,
+            endRow = target.endRow,
+            endCol = target.endCol
+        ) ?: return false
+
+        return selected == expected || selected == expected.asReversed()
+    }
+
+    private fun pathBetween(
+        startRow: Int,
+        startCol: Int,
+        endRow: Int,
+        endCol: Int
+    ): List<CellPosition>? {
+        val dRow = endRow - startRow
+        val dCol = endCol - startCol
+        val absDRow = abs(dRow)
+        val absDCol = abs(dCol)
+
+        if (dRow != 0 && dCol != 0 && absDRow != absDCol) return null
+
+        val steps = maxOf(absDRow, absDCol)
+        if (steps == 0) return listOf(CellPosition(startRow, startCol))
+
+        val stepRow = dRow.sign()
+        val stepCol = dCol.sign()
+        return List(steps + 1) { offset ->
+            CellPosition(
+                row = startRow + offset * stepRow,
+                col = startCol + offset * stepCol
+            )
+        }
+    }
+
+    private fun Int.sign(): Int = when {
+        this > 0 -> 1
+        this < 0 -> -1
+        else -> 0
     }
 }

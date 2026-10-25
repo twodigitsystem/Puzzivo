@@ -87,4 +87,24 @@ class QuickMathGameEngineTest {
         assertTrue(engine.state.hasUsedTimeHint)
         assertFalse(engine.add15SecondsHint()) // Cannot use twice
     }
+
+    @Test
+    fun `paused game ignores answer input and hints`() {
+        val question = engine.state.currentQuestion!!
+        engine.setPaused(true)
+
+        assertFalse(engine.answerQuestion(question.correctAnswer))
+        assertEquals(0, engine.state.questionsAnswered)
+        assertFalse(engine.add15SecondsHint())
+        assertEquals(60, engine.state.timeRemainingSeconds)
+    }
+
+    @Test
+    fun `new best is recorded only when score exceeds previous best`() {
+        val question = engine.state.currentQuestion!!
+        engine.answerQuestion(question.correctAnswer)
+
+        assertFalse(engine.state.isNewBest)
+        assertEquals(50, engine.state.bestScore)
+    }
 }

@@ -16,7 +16,8 @@ data class WordSearchPuzzle(
     val rows: Int,
     val cols: Int,
     val grid: List<List<Char>>,
-    val targetWords: List<TargetWord>
+    val targetWords: List<TargetWord>,
+    val difficulty: String = "Challenge"
 )
 
 data class CellPosition(val row: Int, val col: Int)

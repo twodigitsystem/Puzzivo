@@ -3,27 +3,43 @@ package com.tds.puzzivo.app
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.tds.puzzivo.core.model.GameType
+import com.tds.puzzivo.feature.achievements.AchievementsScreen
+import com.tds.puzzivo.feature.challenge.DailyChallengeScreen
+import com.tds.puzzivo.feature.hexmerge.HexMergeScreen
 import com.tds.puzzivo.feature.home.HomeScreen
+import com.tds.puzzivo.feature.leaderboard.LeaderboardScreen
+import com.tds.puzzivo.feature.lightsout.LightsOutScreen
 import com.tds.puzzivo.feature.memorymatch.MemoryMatchScreen
+import com.tds.puzzivo.feature.minesweeper.MinesweeperScreen
+import com.tds.puzzivo.feature.nonogram.NonogramScreen
 import com.tds.puzzivo.feature.numbermerge.NumberMergeScreen
+import com.tds.puzzivo.feature.patternrecall.PatternRecallScreen
+import com.tds.puzzivo.feature.profile.ProfileScreen
 import com.tds.puzzivo.feature.quickmath.QuickMathScreen
 import com.tds.puzzivo.feature.settings.SettingsScreen
-import com.tds.puzzivo.feature.wordsearch.WordSearchScreen
+import com.tds.puzzivo.feature.shop.ShopScreen
+import com.tds.puzzivo.feature.statistics.StatisticsScreen
 import com.tds.puzzivo.feature.sudoku.SudokuScreen
-import com.tds.puzzivo.feature.minesweeper.MinesweeperScreen
-import com.tds.puzzivo.feature.patternrecall.PatternRecallScreen
+import com.tds.puzzivo.feature.themes.ThemesScreen
 import com.tds.puzzivo.feature.wordscramble.WordScrambleScreen
-import com.tds.puzzivo.feature.lightsout.LightsOutScreen
-import com.tds.puzzivo.feature.nonogram.NonogramScreen
-import com.tds.puzzivo.feature.hexmerge.HexMergeScreen
+import com.tds.puzzivo.feature.wordsearch.WordSearchScreen
 
 object NavRoutes {
     const val HOME = "home"
     const val SETTINGS = "settings"
+    const val PROFILE = "profile"
+    const val ACHIEVEMENTS = "achievements"
+    const val STATISTICS = "statistics"
+    const val LEADERBOARD = "leaderboard/{gameType}"
+    const val DAILY_CHALLENGE = "daily_challenge"
+    const val THEMES = "themes"
+    const val SHOP = "shop"
     const val NUMBER_MERGE = "game/number_merge"
     const val MEMORY_MATCH = "game/memory_match"
     const val QUICK_MATH = "game/quick_math"
@@ -35,6 +51,8 @@ object NavRoutes {
     const val LIGHTS_OUT = "game/lights_out"
     const val NONOGRAM = "game/nonogram"
     const val HEX_MERGE = "game/hex_merge"
+
+    fun leaderboard(gameType: GameType) = "leaderboard/${gameType.name}"
 }
 
 @Composable
@@ -67,7 +85,87 @@ fun AppNavHost(
                 },
                 onNavigateToSettings = {
                     navController.navigate(NavRoutes.SETTINGS)
+                },
+                onNavigateToProfile = {
+                    navController.navigate(NavRoutes.PROFILE)
+                },
+                onNavigateToDailyChallenge = {
+                    navController.navigate(NavRoutes.DAILY_CHALLENGE)
                 }
+            )
+        }
+
+        composable(NavRoutes.PROFILE) {
+            ProfileScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToAchievements = { navController.navigate(NavRoutes.ACHIEVEMENTS) },
+                onNavigateToStatistics = { navController.navigate(NavRoutes.STATISTICS) },
+                onNavigateToThemes = { navController.navigate(NavRoutes.THEMES) },
+                onNavigateToShop = { navController.navigate(NavRoutes.SHOP) }
+            )
+        }
+
+        composable(NavRoutes.SHOP) {
+            ShopScreen(
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
+
+        composable(NavRoutes.ACHIEVEMENTS) {
+            AchievementsScreen(
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
+
+        composable(NavRoutes.STATISTICS) {
+            StatisticsScreen(
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
+
+        composable(NavRoutes.THEMES) {
+            ThemesScreen(
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
+
+        composable(NavRoutes.DAILY_CHALLENGE) {
+            DailyChallengeScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToGame = { gameType ->
+                    val route = when (gameType) {
+                        GameType.NUMBER_MERGE -> NavRoutes.NUMBER_MERGE
+                        GameType.MEMORY_MATCH -> NavRoutes.MEMORY_MATCH
+                        GameType.QUICK_MATH -> NavRoutes.QUICK_MATH
+                        GameType.WORD_SEARCH -> NavRoutes.WORD_SEARCH
+                        GameType.MINI_SUDOKU -> NavRoutes.MINI_SUDOKU
+                        GameType.MINESWEEPER -> NavRoutes.MINESWEEPER
+                        GameType.PATTERN_RECALL -> NavRoutes.PATTERN_RECALL
+                        GameType.WORD_SCRAMBLE -> NavRoutes.WORD_SCRAMBLE
+                        GameType.LIGHTS_OUT -> NavRoutes.LIGHTS_OUT
+                        GameType.NONOGRAM -> NavRoutes.NONOGRAM
+                        GameType.HEX_MERGE -> NavRoutes.HEX_MERGE
+                    }
+                    navController.navigate(route)
+                }
+            )
+        }
+
+        composable(
+            route = NavRoutes.LEADERBOARD,
+            arguments = listOf(
+                navArgument("gameType") { type = NavType.StringType }
+            )
+        ) { backStackEntry ->
+            val gameTypeStr = backStackEntry.arguments?.getString("gameType") ?: ""
+            val gameType = try {
+                GameType.valueOf(gameTypeStr)
+            } catch (e: Exception) {
+                GameType.NUMBER_MERGE
+            }
+            LeaderboardScreen(
+                gameType = gameType,
+                onNavigateBack = { navController.popBackStack() }
             )
         }
 

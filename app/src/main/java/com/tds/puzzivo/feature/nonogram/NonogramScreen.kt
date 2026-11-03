@@ -18,23 +18,23 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.tds.puzzivo.R
 import com.tds.puzzivo.core.design.AccentCyan
 import com.tds.puzzivo.core.design.AccentGreen
-import com.tds.puzzivo.core.design.AccentYellow
 import com.tds.puzzivo.core.design.CardBorderColor
 import com.tds.puzzivo.core.design.InstructionDialog
 import com.tds.puzzivo.core.design.NavyBackground
@@ -44,16 +44,24 @@ import com.tds.puzzivo.core.design.PrimaryButton
 import com.tds.puzzivo.core.design.PuzzivoCard
 import com.tds.puzzivo.core.design.PuzzivoTopBar
 import com.tds.puzzivo.core.design.RecordGameCompletionEffect
+import com.tds.puzzivo.core.design.TrackGameStartEffect
 import com.tds.puzzivo.core.design.ResultDialog
 import com.tds.puzzivo.core.design.SecondaryButton
-import com.tds.puzzivo.core.design.TextPrimary
 import com.tds.puzzivo.core.design.TextSecondary
 
 private const val SIZE = 5
 
+private val nonogramPatterns = listOf(
+    listOf(0, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0, 0, 0, 1, 0, 0),
+    listOf(0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 1, 1, 0),
+    listOf(0, 0, 1, 0, 0, 0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 0, 1, 0, 1),
+    listOf(0, 0, 1, 0, 0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 0, 1, 1, 1, 0, 0, 0, 1)
+)
+
 @Composable
 fun NonogramScreen(onBackClick: () -> Unit) {
-    val solution = remember { listOf(0, 1, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 1, 0, 1, 0) }
+    var patternIndex by remember { mutableIntStateOf(0) }
+    val solution = nonogramPatterns[patternIndex % nonogramPatterns.size]
     var filled by remember { mutableStateOf(List(SIZE * SIZE) { false }) }
     var markedEmpty by remember { mutableStateOf(List(SIZE * SIZE) { false }) }
     var markMode by remember { mutableStateOf(false) }
@@ -61,6 +69,7 @@ fun NonogramScreen(onBackClick: () -> Unit) {
     var complete by remember { mutableStateOf(false) }
 
     fun reset() {
+        patternIndex = (patternIndex + 1) % nonogramPatterns.size
         filled = List(SIZE * SIZE) { false }
         markedEmpty = List(SIZE * SIZE) { false }
         markMode = false
@@ -79,7 +88,13 @@ fun NonogramScreen(onBackClick: () -> Unit) {
         }
     }
 
-    RecordGameCompletionEffect(com.tds.puzzivo.core.model.GameType.NONOGRAM, complete)
+    TrackGameStartEffect(com.tds.puzzivo.core.model.GameType.NONOGRAM)
+    RecordGameCompletionEffect(
+        gameType = com.tds.puzzivo.core.model.GameType.NONOGRAM,
+        completed = complete,
+        score = 500,
+        moves = filled.count { it }
+    )
 
     val rowClues = listOf("1 1", "5", "3", "5", "1 1")
     val columnClues = listOf("1 1", "5", "3", "5", "1 1")

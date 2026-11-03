@@ -11,6 +11,7 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.tds.puzzivo.core.model.GameType
+import com.tds.puzzivo.core.model.DifficultyLevel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
@@ -39,7 +40,8 @@ data class UserPreferences(
     val currentStreak: Int = 0,
     val bestStreak: Int = 0,
     val lastStreakDate: String = "",
-    val totalGamesPlayed: Int = 0
+    val totalGamesPlayed: Int = 0,
+    val selectedDifficulty: DifficultyLevel = DifficultyLevel.MEDIUM
 )
 
 class PreferencesRepository(
@@ -64,6 +66,7 @@ class PreferencesRepository(
         val BEST_STREAK = intPreferencesKey("best_streak")
         val LAST_STREAK_DATE = stringPreferencesKey("last_streak_date")
         val TOTAL_GAMES_PLAYED = intPreferencesKey("total_games_played")
+        val SELECTED_DIFFICULTY = stringPreferencesKey("selected_difficulty")
     }
 
     val userPreferencesFlow: Flow<UserPreferences> = context.dataStore.data
@@ -78,6 +81,10 @@ class PreferencesRepository(
         val lastStreakDate = prefs[Keys.LAST_STREAK_DATE] ?: ""
         val rawCurrentStreak = prefs[Keys.CURRENT_STREAK] ?: 0
         val activeStreak = if (lastStreakDate == today || lastStreakDate == yesterday) rawCurrentStreak else 0
+
+        val selectedDifficulty = runCatching {
+            DifficultyLevel.valueOf(prefs[Keys.SELECTED_DIFFICULTY] ?: DifficultyLevel.MEDIUM.name)
+        }.getOrDefault(DifficultyLevel.MEDIUM)
 
         UserPreferences(
             numberMergeBestScore = (prefs[Keys.NUMBER_MERGE_BEST_SCORE] ?: 0).coerceAtLeast(0),
@@ -95,7 +102,8 @@ class PreferencesRepository(
             currentStreak = activeStreak.coerceAtLeast(0),
             bestStreak = (prefs[Keys.BEST_STREAK] ?: 0).coerceAtLeast(0),
             lastStreakDate = lastStreakDate,
-            totalGamesPlayed = (prefs[Keys.TOTAL_GAMES_PLAYED] ?: 0).coerceAtLeast(0)
+            totalGamesPlayed = (prefs[Keys.TOTAL_GAMES_PLAYED] ?: 0).coerceAtLeast(0),
+            selectedDifficulty = selectedDifficulty
         )
     }
 
@@ -171,6 +179,12 @@ class PreferencesRepository(
     suspend fun setHapticsEnabled(enabled: Boolean) {
         context.dataStore.edit { prefs ->
             prefs[Keys.HAPTICS_ENABLED] = enabled
+        }
+    }
+
+    suspend fun setSelectedDifficulty(difficulty: DifficultyLevel) {
+        context.dataStore.edit { prefs ->
+            prefs[Keys.SELECTED_DIFFICULTY] = difficulty.name
         }
     }
 

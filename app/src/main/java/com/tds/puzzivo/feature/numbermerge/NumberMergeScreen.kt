@@ -14,8 +14,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -32,14 +32,15 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.tds.puzzivo.R
 import com.tds.puzzivo.core.design.AccentCyan
 import com.tds.puzzivo.core.design.AccentGreen
 import com.tds.puzzivo.core.design.AccentMagenta
@@ -58,13 +59,12 @@ import com.tds.puzzivo.core.design.ResultDialog
 import com.tds.puzzivo.core.design.SecondaryButton
 import com.tds.puzzivo.core.design.TextPrimary
 import com.tds.puzzivo.core.design.TextSecondary
-import com.tds.puzzivo.R
 import kotlin.math.abs
 
 @Composable
 fun NumberMergeScreen(
     onBackClick: () -> Unit,
-    viewModel: NumberMergeViewModel = viewModel()
+    viewModel: NumberMergeViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val shouldShowInstructions by viewModel.shouldShowInstructions.collectAsState()
@@ -72,6 +72,9 @@ fun NumberMergeScreen(
     var showInstructions by remember { mutableStateOf(false) }
     var showExitConfirmation by remember { mutableStateOf(false) }
     var showRestartConfirmation by remember { mutableStateOf(false) }
+
+    val density = androidx.compose.ui.platform.LocalDensity.current
+    val thresholdPx = with(density) { 40.dp.toPx() }
 
     var totalDragX by remember { mutableFloatStateOf(0f) }
     var totalDragY by remember { mutableFloatStateOf(0f) }
@@ -153,17 +156,16 @@ fun NumberMergeScreen(
                                     totalDragY = 0f
                                 },
                                 onDragEnd = {
-                                    val threshold = 50f
                                     if (abs(totalDragX) > abs(totalDragY)) {
-                                        if (totalDragX > threshold) {
+                                        if (totalDragX > thresholdPx) {
                                             viewModel.onSwipe(MoveDirection.RIGHT)
-                                        } else if (totalDragX < -threshold) {
+                                        } else if (totalDragX < -thresholdPx) {
                                             viewModel.onSwipe(MoveDirection.LEFT)
                                         }
                                     } else {
-                                        if (totalDragY > threshold) {
+                                        if (totalDragY > thresholdPx) {
                                             viewModel.onSwipe(MoveDirection.DOWN)
-                                        } else if (totalDragY < -threshold) {
+                                        } else if (totalDragY < -thresholdPx) {
                                             viewModel.onSwipe(MoveDirection.UP)
                                         }
                                     }
@@ -190,13 +192,16 @@ fun NumberMergeScreen(
                                 horizontalArrangement = Arrangement.spacedBy(8.dp)
                             ) {
                                 for (col in 0 until 4) {
-                                    val tileValue = uiState.grid[row * 4 + col]
-                                    NumberTile(
-                                        value = tileValue,
-                                        modifier = Modifier
-                                            .weight(1f)
-                                            .fillMaxSize()
-                                    )
+                                    val tileIndex = row * 4 + col
+                                    val tileValue = uiState.grid[tileIndex]
+                                    androidx.compose.runtime.key(tileIndex) {
+                                        NumberTile(
+                                            value = tileValue,
+                                            modifier = Modifier
+                                                .weight(1f)
+                                                .fillMaxSize()
+                                        )
+                                    }
                                 }
                             }
                         }

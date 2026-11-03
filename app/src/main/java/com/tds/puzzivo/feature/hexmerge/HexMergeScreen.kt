@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -22,11 +21,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.semantics.role
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.tds.puzzivo.R
@@ -41,6 +39,7 @@ import com.tds.puzzivo.core.design.PrimaryButton
 import com.tds.puzzivo.core.design.PuzzivoCard
 import com.tds.puzzivo.core.design.PuzzivoTopBar
 import com.tds.puzzivo.core.design.RecordGameCompletionEffect
+import com.tds.puzzivo.core.design.TrackGameStartEffect
 import com.tds.puzzivo.core.design.ResultDialog
 import com.tds.puzzivo.core.design.TextPrimary
 import kotlin.random.Random
@@ -84,7 +83,13 @@ fun HexMergeScreen(onBackClick: () -> Unit) {
         board = moveBoard(board, direction)
     }
 
-    RecordGameCompletionEffect(com.tds.puzzivo.core.model.GameType.HEX_MERGE, board.gameOver)
+    TrackGameStartEffect(com.tds.puzzivo.core.model.GameType.HEX_MERGE)
+    RecordGameCompletionEffect(
+        gameType = com.tds.puzzivo.core.model.GameType.HEX_MERGE,
+        completed = board.gameOver,
+        score = board.score,
+        won = false
+    )
 
     Surface(color = NavyBackground, modifier = Modifier.fillMaxSize()) {
         Column(modifier = Modifier.fillMaxSize()) {
@@ -111,11 +116,11 @@ fun HexMergeScreen(onBackClick: () -> Unit) {
                 }
                 Spacer(modifier = Modifier.height(12.dp))
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    HexDirection.values().take(3).forEach { direction -> DirectionButton(direction.label) { move(direction) } }
+                    HexDirection.entries.take(3).forEach { direction -> DirectionButton(direction.label) { move(direction) } }
                 }
                 Spacer(modifier = Modifier.height(8.dp))
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    HexDirection.values().drop(3).forEach { direction -> DirectionButton(direction.label) { move(direction) } }
+                    HexDirection.entries.drop(3).forEach { direction -> DirectionButton(direction.label) { move(direction) } }
                 }
                 Spacer(modifier = Modifier.height(12.dp))
                 PrimaryButton(text = stringResource(R.string.action_restart), onClick = ::reset)
@@ -214,7 +219,7 @@ private fun moveBoard(board: HexBoard, direction: HexDirection): HexBoard {
 private fun hasMoves(values: Map<HexCoord, Int>): Boolean {
     if (values.size < hexCoords.size) return true
     return hexCoords.any { coord ->
-        HexDirection.values().any { direction ->
+        HexDirection.entries.any { direction ->
             val neighbor = HexCoord(coord.q + direction.dq, coord.r + direction.dr)
             neighbor in values && values[neighbor] == values[coord]
         }

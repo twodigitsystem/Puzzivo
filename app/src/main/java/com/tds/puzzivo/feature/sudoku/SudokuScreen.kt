@@ -13,23 +13,22 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.tds.puzzivo.R
@@ -44,6 +43,7 @@ import com.tds.puzzivo.core.design.PrimaryButton
 import com.tds.puzzivo.core.design.PuzzivoCard
 import com.tds.puzzivo.core.design.PuzzivoTopBar
 import com.tds.puzzivo.core.design.RecordGameCompletionEffect
+import com.tds.puzzivo.core.design.TrackGameStartEffect
 import com.tds.puzzivo.core.design.ResultDialog
 import com.tds.puzzivo.core.design.SecondaryButton
 import com.tds.puzzivo.core.design.TextPrimary
@@ -78,6 +78,7 @@ fun SudokuScreen(onBackClick: () -> Unit) {
     var values by remember { mutableStateOf(List(36) { index -> if (index in puzzle.givens) puzzle.solution[index] else 0 }) }
     var selectedIndex by remember { mutableStateOf<Int?>(null) }
     var mistakes by remember { mutableIntStateOf(0) }
+    var hintsUsed by remember { mutableIntStateOf(0) }
     var puzzleNumber by remember { mutableIntStateOf(0) }
     var showHelp by remember { mutableStateOf(false) }
     var showResult by remember { mutableStateOf(false) }
@@ -88,6 +89,7 @@ fun SudokuScreen(onBackClick: () -> Unit) {
         values = List(36) { index -> if (index in puzzle.givens) puzzle.solution[index] else 0 }
         selectedIndex = null
         mistakes = 0
+        hintsUsed = 0
         showResult = false
     }
 
@@ -105,8 +107,9 @@ fun SudokuScreen(onBackClick: () -> Unit) {
     }
 
     fun applyHint() {
-        val index = values.indexOfFirst { it == 0 && it !in puzzle.givens }
+        val index = values.indices.firstOrNull { idx -> values[idx] == 0 && idx !in puzzle.givens } ?: -1
         if (index >= 0) {
+            hintsUsed += 1
             values = values.toMutableList().also { it[index] = puzzle.solution[index] }
             selectedIndex = index
             if (values.withIndex().all { (cell, number) -> number == puzzle.solution[cell] }) {
@@ -115,7 +118,14 @@ fun SudokuScreen(onBackClick: () -> Unit) {
         }
     }
 
-    RecordGameCompletionEffect(com.tds.puzzivo.core.model.GameType.MINI_SUDOKU, showResult)
+    TrackGameStartEffect(com.tds.puzzivo.core.model.GameType.MINI_SUDOKU)
+    RecordGameCompletionEffect(
+        gameType = com.tds.puzzivo.core.model.GameType.MINI_SUDOKU,
+        completed = showResult,
+        score = (1000 - mistakes * 25).coerceAtLeast(0),
+        moves = values.count { it != 0 },
+        hintsUsed = hintsUsed
+    )
 
     Surface(color = NavyBackground, modifier = Modifier.fillMaxSize()) {
         Column(modifier = Modifier.fillMaxSize()) {

@@ -1,23 +1,31 @@
 package com.tds.puzzivo.feature.wordsearch
 
 import android.app.Activity
-import android.app.Application
-import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.tds.puzzivo.PuzzivoApplication
+import com.tds.puzzivo.core.ads.AdManager
+import com.tds.puzzivo.core.analytics.AnalyticsManager
 import com.tds.puzzivo.core.audio.SoundAndHapticsManager
+import com.tds.puzzivo.core.manager.GameCompletionRecorder
+import com.tds.puzzivo.core.manager.GameCompletionRequest
 import com.tds.puzzivo.core.model.GameType
+import com.tds.puzzivo.core.storage.PreferencesRepository
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class WordSearchViewModel(application: Application) : AndroidViewModel(application) {
-
-    private val repository = (application as PuzzivoApplication).preferencesRepository
-    private val adManager = (application as PuzzivoApplication).adManager
-    private val soundAndHapticsManager = SoundAndHapticsManager(application)
+@HiltViewModel
+class WordSearchViewModel @Inject constructor(
+    private val repository: PreferencesRepository,
+    private val adManager: AdManager,
+    private val soundAndHapticsManager: SoundAndHapticsManager,
+    private val completionRecorder: GameCompletionRecorder,
+    private val analyticsManager: AnalyticsManager
+) : ViewModel() {
 
     private val engine = WordSearchGameEngine()
 
@@ -39,6 +47,7 @@ class WordSearchViewModel(application: Application) : AndroidViewModel(applicati
             _shouldShowInstructions.value = GameType.WORD_SEARCH.id !in prefs.seenInstructionIds
             engine.loadPuzzle(prefs.wordSearchCurrentIndex)
             _uiState.value = engine.state
+            analyticsManager.logGameStarted(GameType.WORD_SEARCH)
         }
         adManager.preloadRewardedAd()
     }
@@ -111,6 +120,7 @@ class WordSearchViewModel(application: Application) : AndroidViewModel(applicati
         engine.loadPuzzle(nextIndex)
         completionRecordedPuzzleId = null
         _uiState.value = engine.state
+        analyticsManager.logGameStarted(GameType.WORD_SEARCH)
     }
 
     private fun onGameComplete() {
@@ -124,11 +134,21 @@ class WordSearchViewModel(application: Application) : AndroidViewModel(applicati
                 puzzleId = puzzle.id,
                 nextIndex = nextIndex
             )
-            repository.recordGameCompleted(GameType.WORD_SEARCH)
+            completionRecorder.record(
+                GameCompletionRequest(
+                    completionId = puzzle.id,
+                    gameType = GameType.WORD_SEARCH,
+                    score = engine.state.foundWords.size * 100,
+                    durationSeconds = 60,
+                    won = true,
+                    moves = engine.state.foundWords.size,
+                    hintsUsed = if (engine.state.hasUsedHint) 1 else 0
+                )
+            )
         }
     }
 
     override fun onCleared() {
-        soundAndHapticsManager.release()
+        // SoundAndHapticsManager is now singleton, no need to release
     }
 }

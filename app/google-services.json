@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "193121238697",
+    "project_id": "puzzivo",
+    "storage_bucket": "puzzivo.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:193121238697:android:e800d9c939bdd156aa33b8",
+        "android_client_info": {
+          "package_name": "com.tds.puzzivo"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "193121238697-eok1cp5jejdroq8pn07okb7tgffqtkfq.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.tds.puzzivo",
+            "certificate_hash": "313b931b6b51c530dffeee8cc14e4a04989a2cda"
+          }
+        },
+        {
+          "client_id": "193121238697-nfmkidf2ve1mn6nvhpjghudsf3pf83eu.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBBLWgxo8TYHsz21CIe3_nKrWRGThvkk_8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "193121238697-nfmkidf2ve1mn6nvhpjghudsf3pf83eu.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -22,13 +21,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.tds.puzzivo.R
@@ -44,10 +43,9 @@ import com.tds.puzzivo.core.design.PrimaryButton
 import com.tds.puzzivo.core.design.PuzzivoCard
 import com.tds.puzzivo.core.design.PuzzivoTopBar
 import com.tds.puzzivo.core.design.RecordGameCompletionEffect
+import com.tds.puzzivo.core.design.TrackGameStartEffect
 import com.tds.puzzivo.core.design.ResultDialog
 import com.tds.puzzivo.core.design.SecondaryButton
-import com.tds.puzzivo.core.design.TextPrimary
-import com.tds.puzzivo.core.design.TextSecondary
 
 private const val BOARD_SIZE = 6
 private const val MINE_COUNT = 8
@@ -100,7 +98,14 @@ fun MinesweeperScreen(onBackClick: () -> Unit) {
         flagMode = false
     }
 
-    RecordGameCompletionEffect(com.tds.puzzivo.core.model.GameType.MINESWEEPER, board.won)
+    TrackGameStartEffect(com.tds.puzzivo.core.model.GameType.MINESWEEPER)
+    RecordGameCompletionEffect(
+        gameType = com.tds.puzzivo.core.model.GameType.MINESWEEPER,
+        completed = board.won || board.gameOver,
+        score = board.cells.count { it.revealed && !it.mine } * 10,
+        won = board.won,
+        moves = board.cells.count { it.revealed }
+    )
 
     Surface(color = NavyBackground, modifier = Modifier.fillMaxSize()) {
         Column(modifier = Modifier.fillMaxSize()) {

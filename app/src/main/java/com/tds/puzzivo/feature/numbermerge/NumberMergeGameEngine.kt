@@ -85,7 +85,7 @@ class NumberMergeGameEngine(
             hasReached2048 = reached2048Now,
             canUndo = true,
             moveCount = state.moveCount + 1,
-            isNewBest = state.isNewBest || newScore > state.bestScore
+            isNewBest = state.isNewBest || (state.bestScore > 0 && newScore > state.bestScore)
         )
 
         return true

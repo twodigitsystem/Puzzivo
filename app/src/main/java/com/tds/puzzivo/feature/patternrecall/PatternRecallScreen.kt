@@ -18,23 +18,22 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.tds.puzzivo.R
 import com.tds.puzzivo.core.design.AccentCyan
-import com.tds.puzzivo.core.design.AccentGreen
 import com.tds.puzzivo.core.design.AccentYellow
 import com.tds.puzzivo.core.design.CardBorderColor
 import com.tds.puzzivo.core.design.InstructionDialog
@@ -45,8 +44,8 @@ import com.tds.puzzivo.core.design.PrimaryButton
 import com.tds.puzzivo.core.design.PuzzivoCard
 import com.tds.puzzivo.core.design.PuzzivoTopBar
 import com.tds.puzzivo.core.design.RecordGameCompletionEffect
+import com.tds.puzzivo.core.design.TrackGameStartEffect
 import com.tds.puzzivo.core.design.ResultDialog
-import com.tds.puzzivo.core.design.TextPrimary
 import com.tds.puzzivo.core.design.TextSecondary
 import kotlin.random.Random
 
@@ -96,7 +95,14 @@ fun PatternRecallScreen(onBackClick: () -> Unit) {
         gameOver = false
     }
 
-    RecordGameCompletionEffect(com.tds.puzzivo.core.model.GameType.PATTERN_RECALL, gameOver)
+    TrackGameStartEffect(com.tds.puzzivo.core.model.GameType.PATTERN_RECALL)
+    RecordGameCompletionEffect(
+        gameType = com.tds.puzzivo.core.model.GameType.PATTERN_RECALL,
+        completed = gameOver && round > 1,
+        score = (round - 1).coerceAtLeast(0) * 100,
+        won = false,
+        moves = (round - 1).coerceAtLeast(0)
+    )
 
     Surface(color = NavyBackground, modifier = Modifier.fillMaxSize()) {
         Column(modifier = Modifier.fillMaxSize()) {

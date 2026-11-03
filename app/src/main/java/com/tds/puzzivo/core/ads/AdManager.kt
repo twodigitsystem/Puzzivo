@@ -9,6 +9,17 @@ import com.google.android.libraries.ads.mobile.sdk.common.AdRequest
 import com.google.android.libraries.ads.mobile.sdk.common.LoadAdError
 import com.google.android.libraries.ads.mobile.sdk.rewarded.RewardedAd
 import com.tds.puzzivo.BuildConfig
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
+import javax.inject.Inject
+import javax.inject.Singleton
 
 object AdUnitIds {
     const val BANNER_TEST_ID = "ca-app-pub-3940256099942544/6300978111"
@@ -27,30 +38,65 @@ object AdUnitIds {
     }
 }
 
-class AdManager(
+sealed class AdLoadState {
+    object Idle : AdLoadState()
+    object Loading : AdLoadState()
+    object Loaded : AdLoadState()
+    data class Error(val message: String) : AdLoadState()
+}
+
+@Singleton
+class AdManager @Inject constructor(
     private val context: Context,
     private val canRequestAds: () -> Boolean = { true }
 ) {
 
     private var rewardedAd: RewardedAd? = null
     private var isLoadingRewarded = false
+    private var refreshJob: Job? = null
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
+
+    private val _adLoadState = MutableStateFlow<AdLoadState>(AdLoadState.Idle)
+    val adLoadState: StateFlow<AdLoadState> = _adLoadState.asStateFlow()
+
+    init {
+        startAdRefreshCycle()
+    }
+
+    /**
+     * Aggressive preloading: refresh ad every 30 seconds if not loaded
+     */
+    private fun startAdRefreshCycle() {
+        refreshJob?.cancel()
+        refreshJob = scope.launch {
+            while (true) {
+                delay(30_000) // 30 seconds
+                if (rewardedAd == null && !isLoadingRewarded && canRequestAds()) {
+                    preloadRewardedAd()
+                }
+            }
+        }
+    }
 
     fun preloadRewardedAd() {
         if (!canRequestAds() || rewardedAd != null || isLoadingRewarded) return
         isLoadingRewarded = true
+        _adLoadState.value = AdLoadState.Loading
 
         val adRequest = AdRequest.Builder(AdUnitIds.getRewardedAdUnitId()).build()
         RewardedAd.load(adRequest, object : AdLoadCallback<RewardedAd> {
             override fun onAdLoaded(ad: RewardedAd) {
                 rewardedAd = ad
                 isLoadingRewarded = false
-                Log.d("AdManager", "Rewarded ad loaded successfully.")
+                _adLoadState.value = AdLoadState.Loaded
+                Log.d(TAG, "Rewarded ad loaded successfully.")
             }
 
             override fun onAdFailedToLoad(adError: LoadAdError) {
                 rewardedAd = null
                 isLoadingRewarded = false
-                Log.e("AdManager", "Rewarded ad failed to load: ${adError.message}")
+                _adLoadState.value = AdLoadState.Error(adError.message)
+                Log.e(TAG, "Rewarded ad failed to load: ${adError.message}")
             }
         })
     }
@@ -67,6 +113,8 @@ class AdManager(
 
         val ad = rewardedAd
         rewardedAd = null
+        _adLoadState.value = AdLoadState.Idle
+
         if (ad != null) {
             var rewardDelivered = false
             try {
@@ -75,10 +123,15 @@ class AdManager(
                         rewardDelivered = true
                         onRewardEarned()
                     }
-                    preloadRewardedAd()
+                    // Preload next ad after showing
+                    scope.launch {
+                        delay(1000) // Small delay before next load
+                        preloadRewardedAd()
+                    }
                 }
             } catch (e: Exception) {
-                Log.e("AdManager", "Error showing rewarded ad", e)
+                Log.e(TAG, "Error showing rewarded ad", e)
+                _adLoadState.value = AdLoadState.Error(e.message ?: "Unknown error")
                 notifyUnavailable(onAdUnavailable)
                 preloadRewardedAd()
             }
@@ -88,8 +141,19 @@ class AdManager(
         }
     }
 
+    fun isAdReady(): Boolean = rewardedAd != null
+
     private fun notifyUnavailable(onAdUnavailable: () -> Unit) {
         Toast.makeText(context, "Rewarded ad unavailable. Please try again later.", Toast.LENGTH_SHORT).show()
         onAdUnavailable()
+    }
+
+    fun cleanup() {
+        refreshJob?.cancel()
+        refreshJob = null
+    }
+
+    companion object {
+        private const val TAG = "AdManager"
     }
 }

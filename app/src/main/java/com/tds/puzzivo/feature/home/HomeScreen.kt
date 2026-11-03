@@ -17,35 +17,38 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Bolt
+import androidx.compose.material.icons.outlined.CalendarToday
+import androidx.compose.material.icons.outlined.Calculate
+import androidx.compose.material.icons.outlined.ChevronRight
+import androidx.compose.material.icons.outlined.LocalFireDepartment
+import androidx.compose.material.icons.outlined.Person
+import androidx.compose.material.icons.outlined.Search
+import androidx.compose.material.icons.outlined.Settings
+import androidx.compose.material.icons.outlined.Style
+import androidx.compose.material.icons.outlined.VideogameAsset
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Bolt
-import androidx.compose.material.icons.outlined.Calculate
-import androidx.compose.material.icons.outlined.ChevronRight
-import androidx.compose.material.icons.outlined.LocalFireDepartment
-import androidx.compose.material.icons.outlined.Search
-import androidx.compose.material.icons.outlined.Settings
-import androidx.compose.material.icons.outlined.Style
-import androidx.compose.material.icons.outlined.VideogameAsset
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.tds.puzzivo.R
 import com.tds.puzzivo.core.design.AccentCyan
 import com.tds.puzzivo.core.design.AccentGreen
 import com.tds.puzzivo.core.design.AccentOrange
@@ -59,13 +62,14 @@ import com.tds.puzzivo.core.design.PuzzivoCard
 import com.tds.puzzivo.core.design.TextPrimary
 import com.tds.puzzivo.core.design.TextSecondary
 import com.tds.puzzivo.core.model.GameType
-import com.tds.puzzivo.R
 
 @Composable
 fun HomeScreen(
     onNavigateToGame: (GameType) -> Unit,
     onNavigateToSettings: () -> Unit,
-    viewModel: HomeViewModel = viewModel()
+    onNavigateToProfile: () -> Unit = {},
+    onNavigateToDailyChallenge: () -> Unit = {},
+    viewModel: HomeViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val scrollState = rememberScrollState()
@@ -88,37 +92,95 @@ fun HomeScreen(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Column {
-                    Text(
-                        text = "PUZZIVO",
-                        style = MaterialTheme.typography.headlineLarge,
-                        color = AccentYellow,
-                        fontWeight = FontWeight.Black,
-                        letterSpacing = 2.sp
-                    )
-                    Text(
-                        text = stringResource(R.string.home_brand_tagline),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = TextSecondary
-                    )
-                }
-
-                IconButton(
-                    onClick = onNavigateToSettings,
-                    modifier = Modifier.semantics { contentDescription = settingsDescription }
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     Surface(
-                        color = NavySurface,
-                        shape = CircleShape,
-                        border = androidx.compose.foundation.BorderStroke(1.dp, CardBorderColor),
+                        color = AccentYellow.copy(alpha = 0.15f),
+                        shape = RoundedCornerShape(12.dp),
+                        border = androidx.compose.foundation.BorderStroke(1.dp, AccentYellow.copy(alpha = 0.4f)),
                         modifier = Modifier.size(44.dp)
                     ) {
                         Box(contentAlignment = Alignment.Center) {
-                            Icon(
-                                imageVector = Icons.Outlined.Settings,
-                                contentDescription = null,
-                                tint = TextPrimary
-                            )
+                            Text(text = "🧩", fontSize = 24.sp)
+                        }
+                    }
+
+                    Column {
+                        Text(
+                            text = "PUZZIVO",
+                            style = MaterialTheme.typography.headlineLarge,
+                            color = AccentYellow,
+                            fontWeight = FontWeight.Black,
+                            letterSpacing = 2.sp
+                        )
+                        Text(
+                            text = stringResource(R.string.home_brand_tagline),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = TextSecondary
+                        )
+                    }
+                }
+
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    IconButton(
+                        onClick = onNavigateToDailyChallenge,
+                        modifier = Modifier.semantics { contentDescription = "Daily challenge" }
+                    ) {
+                        Surface(
+                            color = NavySurface,
+                            shape = CircleShape,
+                            border = androidx.compose.foundation.BorderStroke(1.dp, CardBorderColor),
+                            modifier = Modifier.size(44.dp)
+                        ) {
+                            Box(contentAlignment = Alignment.Center) {
+                                Icon(
+                                    imageVector = Icons.Outlined.CalendarToday,
+                                    contentDescription = null,
+                                    tint = AccentYellow
+                                )
+                            }
+                        }
+                    }
+
+                    IconButton(
+                        onClick = onNavigateToProfile,
+                        modifier = Modifier.semantics { contentDescription = "Profile" }
+                    ) {
+                        Surface(
+                            color = NavySurface,
+                            shape = CircleShape,
+                            border = androidx.compose.foundation.BorderStroke(1.dp, CardBorderColor),
+                            modifier = Modifier.size(44.dp)
+                        ) {
+                            Box(contentAlignment = Alignment.Center) {
+                                Icon(
+                                    imageVector = Icons.Outlined.Person,
+                                    contentDescription = null,
+                                    tint = TextPrimary
+                                )
+                            }
+                        }
+                    }
+
+                    IconButton(
+                        onClick = onNavigateToSettings,
+                        modifier = Modifier.semantics { contentDescription = settingsDescription }
+                    ) {
+                        Surface(
+                            color = NavySurface,
+                            shape = CircleShape,
+                            border = androidx.compose.foundation.BorderStroke(1.dp, CardBorderColor),
+                            modifier = Modifier.size(44.dp)
+                        ) {
+                            Box(contentAlignment = Alignment.Center) {
+                                Icon(
+                                    imageVector = Icons.Outlined.Settings,
+                                    contentDescription = null,
+                                    tint = TextPrimary
+                                )
+                            }
                         }
                     }
                 }
@@ -308,7 +370,18 @@ fun HomeScreen(
                                     uiState.userPreferences.wordSearchSolvedIds.size,
                                     gameType.totalContentCount ?: 0
                                 )
-                                else -> stringResource(R.string.home_new_game)
+                                else -> uiState.gameStatistics[gameType]?.let { statistics ->
+                                    if (statistics.totalPlays > 0) {
+                                        pluralStringResource(
+                                            R.plurals.home_games_and_score,
+                                            statistics.totalPlays,
+                                            statistics.totalPlays,
+                                            statistics.highestScore
+                                        )
+                                    } else {
+                                        stringResource(R.string.home_new_game)
+                                    }
+                                } ?: stringResource(R.string.home_new_game)
                             }
                             val icon = when (gameType) {
                                 GameType.NUMBER_MERGE -> Icons.Outlined.Calculate

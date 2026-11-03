@@ -1,6 +1,9 @@
 <resources>
     <string name="app_name">Puzzivo</string>
 
+    <!-- Google Sign-In Web Client ID (Populated from Firebase console or google-services.json) -->
+    <string name="default_web_client_id" translatable="false">193121238697-nfmkidf2ve1mn6nvhpjghudsf3pf83eu.apps.googleusercontent.com</string>
+
     <!-- General Navigation & Actions -->
     <string name="action_restart">Restart</string>
     <string name="action_main_menu">Main Menu</string>
@@ -37,6 +40,10 @@
     </plurals>
     <string name="home_no_score_yet">No score yet</string>
     <string name="home_solved_format">Solved: %1$d / %2$d</string>
+    <plurals name="home_games_and_score">
+        <item quantity="one">%1$d game played • Best %2$d</item>
+        <item quantity="other">%1$d games played • Best %2$d</item>
+    </plurals>
     <string name="home_game_card_description">%1$s. %2$s. %3$s. Double tap to play.</string>
 
     <!-- Game metadata -->
@@ -81,6 +88,9 @@
     <string name="settings_sound_desc">Play audio cues during gameplay</string>
     <string name="settings_haptics">Haptic Feedback</string>
     <string name="settings_haptics_desc">Vibrate on key actions and matches</string>
+    <string name="settings_difficulty">Default Difficulty</string>
+    <string name="settings_difficulty_desc">Choose the score multiplier used for completed games</string>
+    <string name="settings_difficulty_dialog_title">Choose Difficulty</string>
     <string name="settings_spread_word">Spread the Word</string>
     <string name="settings_share_app">Share Puzzivo with Friends</string>
     <string name="settings_rate_app">Rate &amp; Review on Play Store</string>
@@ -268,4 +278,50 @@
     <string name="hex_merge_score">Score: %1$d</string>
     <string name="hex_merge_game_over">No More Moves</string>
     <string name="settings_version_format">Puzzivo v%1$s</string>
+
+    <!-- Game Themes -->
+    <string name="theme_navy_dark">Navy Dark</string>
+    <string name="theme_forest_green">Forest Green</string>
+    <string name="theme_ocean_blue">Ocean Blue</string>
+    <string name="theme_sunset_orange">Sunset Orange</string>
+    <string name="theme_midnight_purple">Midnight Purple</string>
+    <string name="theme_rose_gold">Rose Gold</string>
+
+    <!-- Daily Challenges -->
+    <string name="challenge_nm_score_2000">Score 2,000 points in Number Merge</string>
+    <string name="challenge_nm_tile_512">Create a 512 tile in Number Merge</string>
+    <string name="challenge_nm_moves_100">Make 100 merges in Number Merge</string>
+    <string name="challenge_mm_moves_20">Complete Memory Match in under 20 moves</string>
+    <string name="challenge_mm_time_60">Complete Memory Match in under 60 seconds</string>
+    <string name="challenge_mm_perfect">Achieve a perfect Memory Match game</string>
+    <string name="challenge_qm_score_20">Solve 20 problems in Quick Math</string>
+    <string name="challenge_qm_correct_15">Get 15 consecutive answers right in Quick Math</string>
+    <string name="challenge_qm_no_mistakes">Complete Quick Math without mistakes</string>
+    <string name="challenge_generic_win">Win a puzzle game today</string>
+    <string name="challenge_generic_play_3">Play any 3 games today</string>
+    <!-- Achievements -->
+    <string name="achievement_first_game_title">Getting Started</string>
+    <string name="achievement_first_game_desc">Play your first game</string>
+    <string name="achievement_play_10_title">Casual Player</string>
+    <string name="achievement_play_10_desc">Play 10 games total</string>
+    <string name="achievement_play_50_title">Dedicated Player</string>
+    <string name="achievement_play_50_desc">Play 50 games total</string>
+    <string name="achievement_play_100_title">Game Master</string>
+    <string name="achievement_play_100_desc">Play 100 games total</string>
+    <string name="achievement_win_1_title">First Victory</string>
+    <string name="achievement_win_1_desc">Win your first game</string>
+    <string name="achievement_win_10_title">Winner</string>
+    <string name="achievement_win_10_desc">Win 10 games total</string>
+    <string name="achievement_win_50_title">Champion</string>
+    <string name="achievement_win_50_desc">Win 50 games total</string>
+    <string name="achievement_streak_3_title">On a Roll</string>
+    <string name="achievement_streak_3_desc">Achieve a 3-day streak</string>
+    <string name="achievement_streak_7_title">Unstoppable</string>
+    <string name="achievement_streak_7_desc">Achieve a 7-day streak</string>
+    <string name="achievement_game_first_win_title">First Win</string>
+    <string name="achievement_game_first_win_desc">Win your first game</string>
+    <string name="achievement_game_10_wins_title">Mastery</string>
+    <string name="achievement_game_10_wins_desc">Win 10 games</string>
+    <string name="achievement_game_speed_title">Speed Demon</string>
+    <string name="achievement_game_speed_desc">Win in under 60 seconds</string>
 </resources>

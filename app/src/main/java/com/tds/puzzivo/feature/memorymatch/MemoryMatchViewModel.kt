@@ -1,12 +1,17 @@
 package com.tds.puzzivo.feature.memorymatch
 
 import android.app.Activity
-import android.app.Application
-import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.SavedStateHandle
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.tds.puzzivo.PuzzivoApplication
+import com.tds.puzzivo.core.ads.AdManager
+import com.tds.puzzivo.core.analytics.AnalyticsManager
 import com.tds.puzzivo.core.audio.SoundAndHapticsManager
+import com.tds.puzzivo.core.manager.GameCompletionRecorder
+import com.tds.puzzivo.core.manager.GameCompletionRequest
 import com.tds.puzzivo.core.model.GameType
+import com.tds.puzzivo.core.storage.PreferencesRepository
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -14,12 +19,17 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class MemoryMatchViewModel(application: Application) : AndroidViewModel(application) {
-
-    private val repository = (application as PuzzivoApplication).preferencesRepository
-    private val adManager = (application as PuzzivoApplication).adManager
-    private val soundAndHapticsManager = SoundAndHapticsManager(application)
+@HiltViewModel
+class MemoryMatchViewModel @Inject constructor(
+    private val repository: PreferencesRepository,
+    private val adManager: AdManager,
+    private val soundAndHapticsManager: SoundAndHapticsManager,
+    private val completionRecorder: GameCompletionRecorder,
+    private val analyticsManager: AnalyticsManager,
+    private val savedStateHandle: SavedStateHandle
+) : ViewModel() {
 
     private val engine = MemoryMatchGameEngine()
 
@@ -35,6 +45,7 @@ class MemoryMatchViewModel(application: Application) : AndroidViewModel(applicat
     private var completionRecorded = false
     private var hapticsEnabled = true
     private var soundEnabled = true
+    private var gameSessionId = java.util.UUID.randomUUID().toString()
 
     init {
         viewModelScope.launch {
@@ -42,11 +53,22 @@ class MemoryMatchViewModel(application: Application) : AndroidViewModel(applicat
             hapticsEnabled = prefs.hapticsEnabled
             soundEnabled = prefs.soundEnabled
             _shouldShowInstructions.value = GameType.MEMORY_MATCH.id !in prefs.seenInstructionIds
+
+            // Restore saved elapsed time if exists
+            val savedElapsedSeconds = savedStateHandle.get<Int>("elapsed_seconds") ?: 0
+
             engine.startNewGame(
                 bestMoves = prefs.memoryMatchBestMoves,
                 bestTimeSeconds = prefs.memoryMatchBestTime
             )
+
+            if (savedElapsedSeconds > 0) {
+                engine.updateTimer(savedElapsedSeconds)
+                startTimer(initialSeconds = savedElapsedSeconds)
+            }
+
             _uiState.value = engine.state
+            analyticsManager.logGameStarted(GameType.MEMORY_MATCH)
         }
         adManager.preloadRewardedAd()
     }
@@ -124,6 +146,8 @@ class MemoryMatchViewModel(application: Application) : AndroidViewModel(applicat
         hintJob?.cancel()
         hintJob = null
         completionRecorded = false
+        gameSessionId = java.util.UUID.randomUUID().toString()
+        clearSavedState()
 
         viewModelScope.launch {
             val prefs = repository.userPreferencesFlow.first()
@@ -134,19 +158,25 @@ class MemoryMatchViewModel(application: Application) : AndroidViewModel(applicat
                 bestTimeSeconds = prefs.memoryMatchBestTime
             )
             _uiState.value = engine.state
+            analyticsManager.logGameStarted(GameType.MEMORY_MATCH)
         }
     }
 
-    private fun startTimer() {
+    private fun startTimer(initialSeconds: Int = 0) {
         timerJob = viewModelScope.launch {
-            var seconds = 0
+            var seconds = initialSeconds
             while (true) {
                 delay(1000)
                 seconds++
                 engine.updateTimer(seconds)
                 _uiState.value = engine.state
+                savedStateHandle["elapsed_seconds"] = seconds
             }
         }
+    }
+
+    private fun clearSavedState() {
+        savedStateHandle.remove<Int>("elapsed_seconds")
     }
 
     private fun onGameVictory() {
@@ -154,12 +184,23 @@ class MemoryMatchViewModel(application: Application) : AndroidViewModel(applicat
         completionRecorded = true
         timerJob?.cancel()
         timerJob = null
+        clearSavedState()
 
         viewModelScope.launch {
             val moves = engine.state.moves
             val time = engine.state.elapsedSeconds
             repository.saveMemoryMatchBest(moves, time)
-            repository.recordGameCompleted(GameType.MEMORY_MATCH)
+            completionRecorder.record(
+                GameCompletionRequest(
+                    completionId = gameSessionId,
+                    gameType = GameType.MEMORY_MATCH,
+                    score = (1000 - moves * 10).coerceAtLeast(0),
+                    durationSeconds = time,
+                    won = true,
+                    moves = moves,
+                    hintsUsed = if (engine.state.hasUsedHint) 1 else 0
+                )
+            )
         }
     }
 
@@ -167,6 +208,6 @@ class MemoryMatchViewModel(application: Application) : AndroidViewModel(applicat
         timerJob?.cancel()
         mismatchJob?.cancel()
         hintJob?.cancel()
-        soundAndHapticsManager.release()
+        // SoundAndHapticsManager is now singleton, no need to release
     }
 }

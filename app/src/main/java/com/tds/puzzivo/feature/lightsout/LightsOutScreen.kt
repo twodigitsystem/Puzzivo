@@ -15,22 +15,21 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.tds.puzzivo.R
-import com.tds.puzzivo.core.design.AccentCyan
 import com.tds.puzzivo.core.design.AccentYellow
 import com.tds.puzzivo.core.design.CardBorderColor
 import com.tds.puzzivo.core.design.InstructionDialog
@@ -41,8 +40,8 @@ import com.tds.puzzivo.core.design.PrimaryButton
 import com.tds.puzzivo.core.design.PuzzivoCard
 import com.tds.puzzivo.core.design.PuzzivoTopBar
 import com.tds.puzzivo.core.design.RecordGameCompletionEffect
+import com.tds.puzzivo.core.design.TrackGameStartEffect
 import com.tds.puzzivo.core.design.ResultDialog
-import com.tds.puzzivo.core.design.TextPrimary
 
 private const val GRID = 5
 
@@ -66,7 +65,13 @@ fun LightsOutScreen(onBackClick: () -> Unit) {
         complete = lights.none { it }
     }
 
-    RecordGameCompletionEffect(com.tds.puzzivo.core.model.GameType.LIGHTS_OUT, complete)
+    TrackGameStartEffect(com.tds.puzzivo.core.model.GameType.LIGHTS_OUT)
+    RecordGameCompletionEffect(
+        gameType = com.tds.puzzivo.core.model.GameType.LIGHTS_OUT,
+        completed = complete,
+        score = (1000 - moves * 10).coerceAtLeast(0),
+        moves = moves
+    )
 
     Surface(color = NavyBackground, modifier = Modifier.fillMaxSize()) {
         Column(modifier = Modifier.fillMaxSize()) {
@@ -135,7 +140,8 @@ fun LightsOutScreen(onBackClick: () -> Unit) {
 
 private fun createLightsOutBoard(): List<Boolean> {
     var board = List(GRID * GRID) { false }
-    listOf(2, 7, 12, 18, 22).forEach { board = toggleLights(board, it) }
+    val seedTaps = (0 until GRID * GRID).shuffled().take(kotlin.random.Random.nextInt(4, 9))
+    seedTaps.forEach { board = toggleLights(board, it) }
     return board
 }
 

@@ -1,12 +1,17 @@
 package com.tds.puzzivo.feature.quickmath
 
 import android.app.Activity
-import android.app.Application
-import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.SavedStateHandle
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.tds.puzzivo.PuzzivoApplication
+import com.tds.puzzivo.core.ads.AdManager
+import com.tds.puzzivo.core.analytics.AnalyticsManager
 import com.tds.puzzivo.core.audio.SoundAndHapticsManager
+import com.tds.puzzivo.core.manager.GameCompletionRecorder
+import com.tds.puzzivo.core.manager.GameCompletionRequest
 import com.tds.puzzivo.core.model.GameType
+import com.tds.puzzivo.core.storage.PreferencesRepository
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -14,12 +19,17 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class QuickMathViewModel(application: Application) : AndroidViewModel(application) {
-
-    private val repository = (application as PuzzivoApplication).preferencesRepository
-    private val adManager = (application as PuzzivoApplication).adManager
-    private val soundAndHapticsManager = SoundAndHapticsManager(application)
+@HiltViewModel
+class QuickMathViewModel @Inject constructor(
+    private val repository: PreferencesRepository,
+    private val adManager: AdManager,
+    private val soundAndHapticsManager: SoundAndHapticsManager,
+    private val completionRecorder: GameCompletionRecorder,
+    private val analyticsManager: AnalyticsManager,
+    private val savedStateHandle: SavedStateHandle
+) : ViewModel() {
 
     private val engine = QuickMathGameEngine()
 
@@ -33,6 +43,7 @@ class QuickMathViewModel(application: Application) : AndroidViewModel(applicatio
     private var completionRecorded = false
     private var hapticsEnabled = true
     private var soundEnabled = true
+    private var gameSessionId = java.util.UUID.randomUUID().toString()
 
     init {
         viewModelScope.launch {
@@ -42,6 +53,7 @@ class QuickMathViewModel(application: Application) : AndroidViewModel(applicatio
             _shouldShowInstructions.value = GameType.QUICK_MATH.id !in prefs.seenInstructionIds
             engine.startNewGame(bestScore = prefs.quickMathBestScore)
             _uiState.value = engine.state
+            analyticsManager.logGameStarted(GameType.QUICK_MATH)
             startTimer()
         }
         adManager.preloadRewardedAd()
@@ -86,12 +98,14 @@ class QuickMathViewModel(application: Application) : AndroidViewModel(applicatio
     fun onRestart() {
         timerJob?.cancel()
         completionRecorded = false
+        gameSessionId = java.util.UUID.randomUUID().toString()
         viewModelScope.launch {
             val prefs = repository.userPreferencesFlow.first()
             hapticsEnabled = prefs.hapticsEnabled
             soundEnabled = prefs.soundEnabled
             engine.startNewGame(bestScore = prefs.quickMathBestScore)
             _uiState.value = engine.state
+            analyticsManager.logGameStarted(GameType.QUICK_MATH)
             startTimer()
         }
     }
@@ -132,12 +146,22 @@ class QuickMathViewModel(application: Application) : AndroidViewModel(applicatio
         viewModelScope.launch {
             val finalScore = engine.state.score
             repository.saveQuickMathBestScore(finalScore)
-            repository.recordGameCompleted(GameType.QUICK_MATH)
+            completionRecorder.record(
+                GameCompletionRequest(
+                    completionId = gameSessionId,
+                    gameType = GameType.QUICK_MATH,
+                    score = finalScore,
+                    durationSeconds = 60,
+                    won = engine.state.correctAnswersCount > 0,
+                    moves = engine.state.questionsAnswered,
+                    hintsUsed = if (engine.state.hasUsedTimeHint) 1 else 0
+                )
+            )
         }
     }
 
     override fun onCleared() {
         timerJob?.cancel()
-        soundAndHapticsManager.release()
+        // SoundAndHapticsManager is now singleton, no need to release
     }
 }

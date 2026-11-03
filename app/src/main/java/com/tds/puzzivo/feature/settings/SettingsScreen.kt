@@ -3,9 +3,9 @@ package com.tds.puzzivo.feature.settings
 import android.app.Activity
 import android.content.Intent
 import android.util.Log
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -13,10 +13,10 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.VolumeUp
 import androidx.compose.material.icons.outlined.ChevronRight
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Email
@@ -24,8 +24,8 @@ import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material.icons.outlined.Shield
 import androidx.compose.material.icons.outlined.Star
+import androidx.compose.material.icons.outlined.Tune
 import androidx.compose.material.icons.outlined.Vibration
-import androidx.compose.material.icons.automirrored.outlined.VolumeUp
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
@@ -34,6 +34,8 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -47,19 +49,18 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.core.net.toUri
-import com.tds.puzzivo.PuzzivoApplication
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.tds.puzzivo.BuildConfig
+import com.tds.puzzivo.PuzzivoApplication
 import com.tds.puzzivo.R
 import com.tds.puzzivo.core.design.AccentYellow
 import com.tds.puzzivo.core.design.ConfirmationDialog
+import com.tds.puzzivo.core.design.DifficultySelector
 import com.tds.puzzivo.core.design.NavyBackground
 import com.tds.puzzivo.core.design.NavySurface
 import com.tds.puzzivo.core.design.PuzzivoCard
 import com.tds.puzzivo.core.design.PuzzivoTopBar
-import com.tds.puzzivo.core.design.SecondaryButton
 import com.tds.puzzivo.core.design.TextPrimary
 import com.tds.puzzivo.core.design.TextSecondary
 import com.tds.puzzivo.core.util.AppUtilities
@@ -67,12 +68,13 @@ import com.tds.puzzivo.core.util.AppUtilities
 @Composable
 fun SettingsScreen(
     onBackClick: () -> Unit,
-    viewModel: SettingsViewModel = viewModel()
+    viewModel: SettingsViewModel = hiltViewModel()
 ) {
     val prefs by viewModel.userPreferences.collectAsState()
     val context = LocalContext.current
     val scrollState = rememberScrollState()
     var showResetConfirmation by remember { mutableStateOf(false) }
+    var showDifficultyDialog by remember { mutableStateOf(false) }
 
     Surface(
         color = NavyBackground,
@@ -137,6 +139,13 @@ fun SettingsScreen(
                                 )
                             },
                             colors = androidx.compose.material3.ListItemDefaults.colors(containerColor = NavySurface)
+                        )
+
+                        SettingsActionRow(
+                            icon = Icons.Outlined.Tune,
+                            title = stringResource(R.string.settings_difficulty),
+                            description = "${stringResource(R.string.settings_difficulty_desc)} (${prefs.selectedDifficulty.name})",
+                            onClick = { showDifficultyDialog = true }
                         )
                     }
                 }
@@ -289,6 +298,27 @@ fun SettingsScreen(
                 showResetConfirmation = false
             },
             onDismiss = { showResetConfirmation = false }
+        )
+    }
+
+    if (showDifficultyDialog) {
+        AlertDialog(
+            onDismissRequest = { showDifficultyDialog = false },
+            title = { Text(stringResource(R.string.settings_difficulty_dialog_title)) },
+            text = {
+                DifficultySelector(
+                    selectedDifficulty = prefs.selectedDifficulty,
+                    onDifficultySelected = {
+                        viewModel.setDifficulty(it)
+                        showDifficultyDialog = false
+                    }
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = { showDifficultyDialog = false }) {
+                    Text(stringResource(R.string.action_cancel))
+                }
+            }
         )
     }
 }

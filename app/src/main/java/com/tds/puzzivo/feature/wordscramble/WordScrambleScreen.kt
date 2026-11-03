@@ -4,8 +4,8 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -19,18 +19,18 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.tds.puzzivo.R
@@ -40,20 +40,26 @@ import com.tds.puzzivo.core.design.CardBorderColor
 import com.tds.puzzivo.core.design.InstructionDialog
 import com.tds.puzzivo.core.design.NavyBackground
 import com.tds.puzzivo.core.design.NavySurface
+import com.tds.puzzivo.core.design.PrimaryButton
 import com.tds.puzzivo.core.design.PuzzivoTopBar
 import com.tds.puzzivo.core.design.RecordGameCompletionEffect
+import com.tds.puzzivo.core.design.TrackGameStartEffect
 import com.tds.puzzivo.core.design.ResultDialog
-import com.tds.puzzivo.core.design.PrimaryButton
 import com.tds.puzzivo.core.design.SecondaryButton
 import com.tds.puzzivo.core.design.TextPrimary
-import com.tds.puzzivo.core.design.TextSecondary
 
 private val scrambleWords = listOf("PUZZLE", "MEMORY", "NUMBER", "GALAXY", "CIPHER", "BRIGHT")
 
 private data class ScrambleRound(val word: String, val letters: List<Char>) {
     companion object {
         fun create(word: String): ScrambleRound {
-            val shuffled = word.toList().shuffled().let { if (it == word.toList()) it.reversed() else it }
+            val original = word.toList()
+            var shuffled = original.shuffled()
+            var attempts = 0
+            while (shuffled == original && original.distinct().size > 1 && attempts < 20) {
+                shuffled = original.shuffled()
+                attempts++
+            }
             return ScrambleRound(word, shuffled)
         }
     }
@@ -105,7 +111,13 @@ fun WordScrambleScreen(onBackClick: () -> Unit) {
         }
     }
 
-    RecordGameCompletionEffect(com.tds.puzzivo.core.model.GameType.WORD_SCRAMBLE, complete)
+    TrackGameStartEffect(com.tds.puzzivo.core.model.GameType.WORD_SCRAMBLE)
+    RecordGameCompletionEffect(
+        gameType = com.tds.puzzivo.core.model.GameType.WORD_SCRAMBLE,
+        completed = complete,
+        score = scrambleWords.size * 100,
+        moves = scrambleWords.size
+    )
 
     Surface(color = NavyBackground, modifier = Modifier.fillMaxSize()) {
         Column(modifier = Modifier.fillMaxSize()) {

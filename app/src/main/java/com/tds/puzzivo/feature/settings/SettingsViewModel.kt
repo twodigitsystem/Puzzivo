@@ -1,18 +1,21 @@
 package com.tds.puzzivo.feature.settings
 
-import android.app.Application
-import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.tds.puzzivo.PuzzivoApplication
+import com.tds.puzzivo.core.storage.PreferencesRepository
 import com.tds.puzzivo.core.storage.UserPreferences
+import com.tds.puzzivo.core.model.DifficultyLevel
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class SettingsViewModel(application: Application) : AndroidViewModel(application) {
-
-    private val repository = (application as PuzzivoApplication).preferencesRepository
+@HiltViewModel
+class SettingsViewModel @Inject constructor(
+    private val repository: PreferencesRepository
+) : ViewModel() {
 
     val userPreferences: StateFlow<UserPreferences> = repository.userPreferencesFlow
         .stateIn(
@@ -30,6 +33,12 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     fun toggleHaptics(enabled: Boolean) {
         viewModelScope.launch {
             repository.setHapticsEnabled(enabled)
+        }
+    }
+
+    fun setDifficulty(difficulty: DifficultyLevel) {
+        viewModelScope.launch {
+            repository.setSelectedDifficulty(difficulty)
         }
     }
 

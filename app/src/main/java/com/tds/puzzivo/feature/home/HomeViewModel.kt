@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 import java.time.LocalDate
 import javax.inject.Inject
 import kotlin.time.Duration.Companion.milliseconds
@@ -31,7 +32,8 @@ data class HomeUiState(
 @HiltViewModel
 class HomeViewModel @Inject constructor(
     private val repository: PreferencesRepository,
-    private val statisticsManager: StatisticsManager
+    private val statisticsManager: StatisticsManager,
+    private val progressionManager: com.tds.puzzivo.core.manager.ProgressionManager
 ) : ViewModel() {
 
     private val localDateFlow = flow {
@@ -67,4 +69,21 @@ class HomeViewModel @Inject constructor(
             started = SharingStarted.WhileSubscribed(5000),
             initialValue = HomeUiState()
         )
+
+    fun claimDailyLoginBonus(onClaimed: (Int, Int) -> Unit) {
+        viewModelScope.launch {
+            val (coins, gems) = repository.claimDailyLoginBonus()
+            progressionManager.addCoins(coins)
+            progressionManager.addGems(gems)
+            onClaimed(coins, gems)
+        }
+    }
+
+    fun claimLuckySpinWheel(coins: Int, gems: Int) {
+        viewModelScope.launch {
+            repository.recordSpinWheelClaim()
+            if (coins > 0) progressionManager.addCoins(coins)
+            if (gems > 0) progressionManager.addGems(gems)
+        }
+    }
 }

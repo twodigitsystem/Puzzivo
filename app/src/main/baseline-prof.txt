@@ -1,0 +1,83 @@
+# Puzzivo Jetpack Baseline Profile Configuration
+# Accelerates cold app launch, ahead-of-time (AOT) compiles Compose render paths, and prevents frame drops.
+
+# ================================
+# Cold App Startup & Navigation
+# ================================
+HSLcom/tds/puzzivo/PuzzivoApplication;
+HSLcom/tds/puzzivo/MainActivity;
+HSLcom/tds/puzzivo/app/AppNavHostKt;
+HSLcom/tds/puzzivo/core/init/AppInitializer;
+
+# ================================
+# Core Managers & Data Infrastructure
+# ================================
+HSLcom/tds/puzzivo/core/ads/AdManager;
+HSLcom/tds/puzzivo/core/audio/SoundAndHapticsManager;
+HSLcom/tds/puzzivo/core/auth/AuthManager;
+HSLcom/tds/puzzivo/core/config/RemoteConfigManager;
+HSLcom/tds/puzzivo/core/manager/ProgressionManager;
+HSLcom/tds/puzzivo/core/manager/StatisticsManager;
+HSLcom/tds/puzzivo/core/manager/GameCompletionRecorder;
+HSLcom/tds/puzzivo/core/manager/AchievementManager;
+HSLcom/tds/puzzivo/core/manager/ChallengeManager;
+HSLcom/tds/puzzivo/core/manager/LeaderboardManager;
+HSLcom/tds/puzzivo/core/manager/ThemeManager;
+HSLcom/tds/puzzivo/core/storage/PreferencesRepository;
+
+# ================================
+# Jetpack Compose Design System
+# ================================
+HSLcom/tds/puzzivo/core/design/PuzzivoThemeKt;
+HSLcom/tds/puzzivo/core/design/ComponentsKt;
+HSLcom/tds/puzzivo/core/design/CardsKt;
+HSLcom/tds/puzzivo/core/design/DialogsKt;
+HSLcom/tds/puzzivo/core/design/ProgressElementsKt;
+HSLcom/tds/puzzivo/core/design/DailyLoginBonusDialogKt;
+HSLcom/tds/puzzivo/core/design/LuckySpinWheelDialogKt;
+HSLcom/tds/puzzivo/core/design/BoosterHudKt;
+
+# ================================
+# Feature Hubs
+# ================================
+HSLcom/tds/puzzivo/feature/home/HomeScreenKt;
+HSLcom/tds/puzzivo/feature/home/HomeViewModel;
+HSLcom/tds/puzzivo/feature/profile/ProfileScreenKt;
+HSLcom/tds/puzzivo/feature/profile/ProfileViewModel;
+HSLcom/tds/puzzivo/feature/challenge/DailyChallengeScreenKt;
+HSLcom/tds/puzzivo/feature/challenge/DailyChallengeViewModel;
+HSLcom/tds/puzzivo/feature/leaderboard/LeaderboardScreenKt;
+HSLcom/tds/puzzivo/feature/leaderboard/LeaderboardViewModel;
+HSLcom/tds/puzzivo/feature/shop/ShopScreenKt;
+HSLcom/tds/puzzivo/feature/shop/ShopViewModel;
+HSLcom/tds/puzzivo/feature/achievements/AchievementsScreenKt;
+HSLcom/tds/puzzivo/feature/statistics/StatisticsScreenKt;
+HSLcom/tds/puzzivo/feature/themes/ThemesScreenKt;
+
+# ================================
+# Mini-Game Engines & Screens (12 Games)
+# ================================
+HSLcom/tds/puzzivo/feature/numbermerge/NumberMergeScreenKt;
+HSLcom/tds/puzzivo/feature/numbermerge/NumberMergeViewModel;
+HSLcom/tds/puzzivo/feature/memorymatch/MemoryMatchScreenKt;
+HSLcom/tds/puzzivo/feature/memorymatch/MemoryMatchViewModel;
+HSLcom/tds/puzzivo/feature/quickmath/QuickMathScreenKt;
+HSLcom/tds/puzzivo/feature/quickmath/QuickMathViewModel;
+HSLcom/tds/puzzivo/feature/wordsearch/WordSearchScreenKt;
+HSLcom/tds/puzzivo/feature/wordsearch/WordSearchViewModel;
+HSLcom/tds/puzzivo/feature/sudoku/SudokuScreenKt;
+HSLcom/tds/puzzivo/feature/sudoku/SudokuViewModel;
+HSLcom/tds/puzzivo/feature/minesweeper/MinesweeperScreenKt;
+HSLcom/tds/puzzivo/feature/minesweeper/MinesweeperViewModel;
+HSLcom/tds/puzzivo/feature/patternrecall/PatternRecallScreenKt;
+HSLcom/tds/puzzivo/feature/patternrecall/PatternRecallViewModel;
+HSLcom/tds/puzzivo/feature/wordscramble/WordScrambleScreenKt;
+HSLcom/tds/puzzivo/feature/wordscramble/WordScrambleViewModel;
+HSLcom/tds/puzzivo/feature/lightsout/LightsOutScreenKt;
+HSLcom/tds/puzzivo/feature/lightsout/LightsOutViewModel;
+HSLcom/tds/puzzivo/feature/nonogram/NonogramScreenKt;
+HSLcom/tds/puzzivo/feature/nonogram/NonogramViewModel;
+HSLcom/tds/puzzivo/feature/hexmerge/HexMergeScreenKt;
+HSLcom/tds/puzzivo/feature/hexmerge/HexMergeViewModel;
+HSLcom/tds/puzzivo/feature/wordguess/WordGuessScreenKt;
+HSLcom/tds/puzzivo/feature/wordguess/WordGuessViewModel;

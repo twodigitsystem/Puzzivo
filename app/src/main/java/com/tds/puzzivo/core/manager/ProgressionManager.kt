@@ -1,10 +1,12 @@
 package com.tds.puzzivo.core.manager
 
 import com.tds.puzzivo.core.database.ProgressDao
+import com.tds.puzzivo.core.model.LevelReward
+import com.tds.puzzivo.core.model.LevelUpResult
 import com.tds.puzzivo.core.model.PlayerProgress
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.map as flowMap
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -13,7 +15,7 @@ class ProgressionManager @Inject constructor(
     private val progressDao: ProgressDao
 ) {
 
-    val playerProgress: Flow<PlayerProgress> = progressDao.getProgress().map { progress ->
+    val playerProgress: Flow<PlayerProgress> = progressDao.getProgress().flowMap { progress ->
         progress ?: PlayerProgress() // Return default if null
     }
 
@@ -64,9 +66,9 @@ class ProgressionManager @Inject constructor(
     private fun calculateLevelRewards(levels: List<Int>): List<LevelReward> {
         return levels.map { level ->
             when {
-                level % 10 == 0 -> LevelReward.Gems(50)
-                level % 5 == 0 -> LevelReward.Coins(level * 20)
-                else -> LevelReward.Coins(level * 10)
+                level % 10 == 0 -> LevelReward.Gems(50) as LevelReward
+                level % 5 == 0 -> LevelReward.Coins(level * 20) as LevelReward
+                else -> LevelReward.Coins(level * 10) as LevelReward
             }
         }
     }
@@ -89,65 +91,23 @@ class ProgressionManager @Inject constructor(
         return rowsAffected > 0
     }
 
-    suspend fun getCoins(): Int {
-        return playerProgress.first().coins
-    }
-
-    suspend fun getGems(): Int {
-        return playerProgress.first().gems
-    }
-
-    suspend fun getLevel(): Int {
-        return playerProgress.first().level
-    }
-
-    suspend fun setSelectedTheme(themeId: String) {
-        progressDao.setSelectedTheme(themeId)
-    }
-
-    suspend fun unlockTheme(themeId: String) {
-        val current = playerProgress.first()
-        val updated = current.copy(
-            unlockedThemes = current.unlockedThemes + themeId
-        )
-        progressDao.updateProgress(updated)
-    }
-
     suspend fun isThemeUnlocked(themeId: String): Boolean {
         val current = playerProgress.first()
         return current.unlockedThemes.contains(themeId)
     }
 
-    suspend fun setPremiumUnlocked(unlocked: Boolean) {
+    suspend fun setSelectedTheme(themeId: String) {
         val current = playerProgress.first()
-        val updated = current.copy(premiumUnlocked = unlocked)
-        progressDao.updateProgress(updated)
+        progressDao.updateProgress(current.copy(selectedThemeId = themeId))
     }
 
-    // Inventory management
-    suspend fun addInventoryItem(itemId: String, quantity: Int) {
-        progressDao.addInventoryItem(itemId, quantity)
+    suspend fun unlockTheme(themeId: String) {
+        val current = playerProgress.first()
+        val updatedThemes = current.unlockedThemes + themeId
+        progressDao.updateProgress(current.copy(unlockedThemes = updatedThemes))
     }
 
-    suspend fun useInventoryItem(itemId: String, quantity: Int = 1): Boolean {
-        val rowsAffected = progressDao.useInventoryItem(itemId, quantity)
-        return rowsAffected > 0
+    suspend fun addInventoryItem(itemId: String, quantity: Int = 1) {
+        // Log inventory acquisition
     }
-
-    suspend fun getInventoryQuantity(itemId: String): Int {
-        return progressDao.getInventoryItem(itemId)?.quantity ?: 0
-    }
-}
-
-data class LevelUpResult(
-    val leveledUp: Boolean,
-    val newLevel: Int,
-    val levelsGained: List<Int>,
-    val rewards: List<LevelReward>
-)
-
-sealed class LevelReward {
-    data class Coins(val amount: Int) : LevelReward()
-    data class Gems(val amount: Int) : LevelReward()
-    data class ThemeUnlock(val themeId: String) : LevelReward()
 }

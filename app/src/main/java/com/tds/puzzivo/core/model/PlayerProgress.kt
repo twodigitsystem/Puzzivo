@@ -58,3 +58,15 @@ data class PlayerInventoryItem(
     @PrimaryKey val itemId: String,
     val quantity: Int = 0
 )
+
+data class LevelUpResult(
+    val leveledUp: Boolean = false,
+    val newLevel: Int = 1,
+    val levelsGained: List<Int> = emptyList(),
+    val rewards: List<LevelReward> = emptyList()
+)
+
+sealed class LevelReward {
+    data class Coins(val amount: Int) : LevelReward()
+    data class Gems(val amount: Int) : LevelReward()
+}

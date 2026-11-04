@@ -26,6 +26,7 @@ class HomeViewModelTest {
 
     private lateinit var repository: PreferencesRepository
     private lateinit var statisticsManager: StatisticsManager
+    private lateinit var progressionManager: com.tds.puzzivo.core.manager.ProgressionManager
     private lateinit var viewModel: HomeViewModel
     private val testDispatcher = StandardTestDispatcher()
 
@@ -34,6 +35,7 @@ class HomeViewModelTest {
         Dispatchers.setMain(testDispatcher)
         repository = mockk(relaxed = true)
         statisticsManager = mockk(relaxed = true)
+        progressionManager = mockk(relaxed = true)
         every { statisticsManager.allStatistics } returns flowOf(emptyList())
     }
 
@@ -46,7 +48,7 @@ class HomeViewModelTest {
         )
         every { repository.userPreferencesFlow } returns flowOf(mockPrefs)
 
-        viewModel = HomeViewModel(repository, statisticsManager)
+        viewModel = HomeViewModel(repository, statisticsManager, progressionManager)
         testDispatcher.scheduler.advanceUntilIdle()
 
         viewModel.uiState.drop(1).test {
@@ -66,7 +68,7 @@ class HomeViewModelTest {
         )
         every { repository.userPreferencesFlow } returns flowOf(mockPrefs)
 
-        viewModel = HomeViewModel(repository, statisticsManager)
+        viewModel = HomeViewModel(repository, statisticsManager, progressionManager)
         testDispatcher.scheduler.advanceUntilIdle()
 
         viewModel.uiState.drop(1).test {
@@ -85,7 +87,7 @@ class HomeViewModelTest {
         )
         every { repository.userPreferencesFlow } returns flowOf(mockPrefs)
 
-        viewModel = HomeViewModel(repository, statisticsManager)
+        viewModel = HomeViewModel(repository, statisticsManager, progressionManager)
         testDispatcher.scheduler.advanceUntilIdle()
 
         viewModel.uiState.drop(1).test {

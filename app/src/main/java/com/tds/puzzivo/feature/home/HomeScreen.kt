@@ -25,6 +25,7 @@ import androidx.compose.material.icons.outlined.ChevronRight
 import androidx.compose.material.icons.outlined.LocalFireDepartment
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.outlined.Search
+import androidx.compose.material.icons.outlined.TextFields
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.outlined.Style
 import androidx.compose.material.icons.outlined.VideogameAsset
@@ -33,9 +34,9 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.*
+import com.tds.puzzivo.core.design.DailyLoginBonusDialog
+import com.tds.puzzivo.core.design.LuckySpinWheelDialog
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -78,6 +79,9 @@ fun HomeScreen(
     val settingsDescription = stringResource(R.string.action_settings)
     val dailyChallengeDescription = stringResource(R.string.home_open_daily_challenge)
     val profileDescription = stringResource(R.string.home_open_profile)
+
+    var showDailyChestDialog by remember { mutableStateOf(false) }
+    var showLuckyWheelDialog by remember { mutableStateOf(false) }
 
     Surface(
         color = NavyBackground,
@@ -237,6 +241,52 @@ fun HomeScreen(
                                 color = AccentYellow,
                                 modifier = Modifier.weight(1f)
                             )
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                // Daily Rewards Quick Actions (Daily Chest & Lucky Wheel)
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    PuzzivoCard(
+                        backgroundColor = NavySurface,
+                        borderColor = AccentYellow,
+                        onClick = { showDailyChestDialog = true },
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(12.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Text("🎁", fontSize = 20.sp)
+                            Column {
+                                Text("Daily Chest", fontWeight = FontWeight.Bold, color = TextPrimary, fontSize = 13.sp)
+                                Text("Claim Bonus", color = AccentYellow, fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
+                            }
+                        }
+                    }
+
+                    PuzzivoCard(
+                        backgroundColor = NavySurface,
+                        borderColor = AccentCyan,
+                        onClick = { showLuckyWheelDialog = true },
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(12.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Text("🎡", fontSize = 20.sp)
+                            Column {
+                                Text("Lucky Wheel", fontWeight = FontWeight.Bold, color = TextPrimary, fontSize = 13.sp)
+                                Text("Spin & Win", color = AccentCyan, fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
+                            }
                         }
                     }
                 }
@@ -415,6 +465,7 @@ fun HomeScreen(
                                 GameType.MEMORY_MATCH -> Icons.Outlined.Style
                                 GameType.QUICK_MATH -> Icons.Outlined.Bolt
                                 GameType.WORD_SEARCH -> Icons.Outlined.Search
+                                GameType.WORD_GUESS -> Icons.Outlined.TextFields
                                 else -> Icons.Outlined.Style
                             }
                             val gameCardDescription = stringResource(
@@ -497,6 +548,27 @@ fun HomeScreen(
 
             // Bottom Banner Ad
             BannerAdView(modifier = Modifier.padding(vertical = 8.dp))
+        }
+
+        if (showDailyChestDialog) {
+            DailyLoginBonusDialog(
+                currentDay = uiState.userPreferences.loginBonusDay,
+                isClaimedToday = uiState.userPreferences.lastLoginBonusClaimDate == java.time.LocalDate.now().toString(),
+                onClaimClick = {
+                    viewModel.claimDailyLoginBonus { _, _ -> }
+                },
+                onDismiss = { showDailyChestDialog = false }
+            )
+        }
+
+        if (showLuckyWheelDialog) {
+            LuckySpinWheelDialog(
+                isSpunToday = uiState.userPreferences.lastSpinWheelClaimDate == java.time.LocalDate.now().toString(),
+                onRewardWon = { coins, gems ->
+                    viewModel.claimLuckySpinWheel(coins, gems)
+                },
+                onDismiss = { showLuckyWheelDialog = false }
+            )
         }
     }
 }

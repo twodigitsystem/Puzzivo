@@ -60,6 +60,9 @@
     <string name="game_word_search_title">Wortsuche</string>
     <string name="game_word_search_subtitle">Versteckte Wörter</string>
     <string name="game_word_search_description">Finde versteckte Wörter waagerecht, senkrecht oder diagonal im Buchstabenfeld.</string>
+    <string name="game_word_guess_title">Wort Erraten</string>
+    <string name="game_word_guess_subtitle">5-Buchstaben-Wort</string>
+    <string name="game_word_guess_description">Errate das versteckte Wort in 6 Versuchen! Grün zeigt die richtige Position an.</string>
 
     <!-- Settings Screen -->
     <string name="settings_title">Einstellungen</string>

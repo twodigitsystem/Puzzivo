@@ -63,6 +63,9 @@
     <string name="game_word_search_title">Mots Mêlés</string>
     <string name="game_word_search_subtitle">Trouvez les Mots Cachés</string>
     <string name="game_word_search_description">Trouvez des mots cachés horizontalement, verticalement ou en diagonale.</string>
+    <string name="game_word_guess_title">Devinez le Mot</string>
+    <string name="game_word_guess_subtitle">Mot de 5 Lettres</string>
+    <string name="game_word_guess_description">Devinez le mot caché en 6 essais ! Le vert indique la bonne position.</string>
 
     <!-- Settings Screen -->
     <string name="settings_title">Paramètres</string>

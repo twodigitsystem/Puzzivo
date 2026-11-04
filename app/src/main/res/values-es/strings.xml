@@ -63,6 +63,9 @@
     <string name="game_word_search_title">Sopa de Letras</string>
     <string name="game_word_search_subtitle">Encuentra Palabras</string>
     <string name="game_word_search_description">Localiza palabras ocultas en horizontal, vertical o diagonal dentro del tablero de letras.</string>
+    <string name="game_word_guess_title">Adivina la Palabra</string>
+    <string name="game_word_guess_subtitle">Palabra de 5 Letras</string>
+    <string name="game_word_guess_description">¡Adivina la palabra oculta en 6 intentos! El verde indica la posición correcta.</string>
 
     <!-- Settings Screen -->
     <string name="settings_title">Ajustes</string>

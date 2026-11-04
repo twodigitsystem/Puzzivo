@@ -41,7 +41,10 @@ data class UserPreferences(
     val bestStreak: Int = 0,
     val lastStreakDate: String = "",
     val totalGamesPlayed: Int = 0,
-    val selectedDifficulty: DifficultyLevel = DifficultyLevel.MEDIUM
+    val selectedDifficulty: DifficultyLevel = DifficultyLevel.MEDIUM,
+    val loginBonusDay: Int = 1,
+    val lastLoginBonusClaimDate: String = "",
+    val lastSpinWheelClaimDate: String = ""
 )
 
 class PreferencesRepository(
@@ -67,6 +70,9 @@ class PreferencesRepository(
         val LAST_STREAK_DATE = stringPreferencesKey("last_streak_date")
         val TOTAL_GAMES_PLAYED = intPreferencesKey("total_games_played")
         val SELECTED_DIFFICULTY = stringPreferencesKey("selected_difficulty")
+        val LOGIN_BONUS_DAY = intPreferencesKey("login_bonus_day")
+        val LAST_LOGIN_BONUS_CLAIM_DATE = stringPreferencesKey("last_login_bonus_claim_date")
+        val LAST_SPIN_WHEEL_CLAIM_DATE = stringPreferencesKey("last_spin_wheel_claim_date")
     }
 
     val userPreferencesFlow: Flow<UserPreferences> = context.dataStore.data
@@ -103,7 +109,10 @@ class PreferencesRepository(
             bestStreak = (prefs[Keys.BEST_STREAK] ?: 0).coerceAtLeast(0),
             lastStreakDate = lastStreakDate,
             totalGamesPlayed = (prefs[Keys.TOTAL_GAMES_PLAYED] ?: 0).coerceAtLeast(0),
-            selectedDifficulty = selectedDifficulty
+            selectedDifficulty = selectedDifficulty,
+            loginBonusDay = (prefs[Keys.LOGIN_BONUS_DAY] ?: 1).coerceIn(1, 7),
+            lastLoginBonusClaimDate = prefs[Keys.LAST_LOGIN_BONUS_CLAIM_DATE] ?: "",
+            lastSpinWheelClaimDate = prefs[Keys.LAST_SPIN_WHEEL_CLAIM_DATE] ?: ""
         )
     }
 
@@ -227,6 +236,48 @@ class PreferencesRepository(
                     prefs[Keys.BEST_STREAK] = currentStreak
                 }
             }
+        }
+    }
+
+    suspend fun claimDailyLoginBonus(): Pair<Int, Int> {
+        val today = LocalDate.now(clock).toString()
+        val yesterday = LocalDate.now(clock).minusDays(1).toString()
+
+        var coinsAwarded = 0
+        var gemsAwarded = 0
+
+        context.dataStore.edit { prefs ->
+            val lastClaim = prefs[Keys.LAST_LOGIN_BONUS_CLAIM_DATE] ?: ""
+            if (lastClaim == today) return@edit
+
+            var currentDay = prefs[Keys.LOGIN_BONUS_DAY] ?: 1
+            if (lastClaim != yesterday && lastClaim.isNotEmpty()) {
+                currentDay = 1
+            }
+
+            when (currentDay) {
+                1 -> { coinsAwarded = 50; gemsAwarded = 0 }
+                2 -> { coinsAwarded = 75; gemsAwarded = 0 }
+                3 -> { coinsAwarded = 100; gemsAwarded = 10 }
+                4 -> { coinsAwarded = 150; gemsAwarded = 0 }
+                5 -> { coinsAwarded = 200; gemsAwarded = 20 }
+                6 -> { coinsAwarded = 300; gemsAwarded = 0 }
+                7 -> { coinsAwarded = 500; gemsAwarded = 50 }
+                else -> { coinsAwarded = 50; gemsAwarded = 0 }
+            }
+
+            val nextDay = if (currentDay >= 7) 1 else currentDay + 1
+            prefs[Keys.LOGIN_BONUS_DAY] = nextDay
+            prefs[Keys.LAST_LOGIN_BONUS_CLAIM_DATE] = today
+        }
+
+        return Pair(coinsAwarded, gemsAwarded)
+    }
+
+    suspend fun recordSpinWheelClaim() {
+        val today = LocalDate.now(clock).toString()
+        context.dataStore.edit { prefs ->
+            prefs[Keys.LAST_SPIN_WHEEL_CLAIM_DATE] = today
         }
     }
 

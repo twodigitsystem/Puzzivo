@@ -88,6 +88,13 @@ enum class GameType(
         subtitleRes = R.string.game_hex_merge_subtitle,
         descriptionRes = R.string.game_hex_merge_description,
         primaryColorHex = 0xFF10B981
+    ),
+    WORD_GUESS(
+        id = "word_guess",
+        titleRes = R.string.game_word_guess_title,
+        subtitleRes = R.string.game_word_guess_subtitle,
+        descriptionRes = R.string.game_word_guess_description,
+        primaryColorHex = 0xFF3B82F6
     );
 
     companion object {

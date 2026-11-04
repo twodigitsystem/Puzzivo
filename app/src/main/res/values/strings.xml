@@ -89,6 +89,9 @@
     <string name="game_hex_merge_title">Hex Merge</string>
     <string name="game_hex_merge_subtitle">Merge on a Hex Board</string>
     <string name="game_hex_merge_description">Move numbered hex tiles, merge matching values, and chase a high score.</string>
+    <string name="game_word_guess_title">Word Guess</string>
+    <string name="game_word_guess_subtitle">Guess the 5-Letter Word</string>
+    <string name="game_word_guess_description">Guess the hidden word in 6 attempts! Green means correct spot, yellow means wrong spot.</string>
 
     <!-- Settings Screen -->
     <string name="settings_title">Settings</string>

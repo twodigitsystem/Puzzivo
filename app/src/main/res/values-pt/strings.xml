@@ -63,6 +63,9 @@
     <string name="game_word_search_title">Caça-Palavras</string>
     <string name="game_word_search_subtitle">Encontre Palavras Escondidas</string>
     <string name="game_word_search_description">Encontre palavras escondidas na horizontal, vertical ou diagonal na grade de letras.</string>
+    <string name="game_word_guess_title">Adivinhe a Palavra</string>
+    <string name="game_word_guess_subtitle">Palavra de 5 Letras</string>
+    <string name="game_word_guess_description">Adivinhe a palavra secreta em 6 tentativas! O verde indica a posição correta.</string>
 
     <!-- Settings Screen -->
     <string name="settings_title">Configurações</string>

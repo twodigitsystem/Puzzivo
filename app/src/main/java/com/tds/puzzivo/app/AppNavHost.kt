@@ -27,6 +27,7 @@ import com.tds.puzzivo.feature.shop.ShopScreen
 import com.tds.puzzivo.feature.statistics.StatisticsScreen
 import com.tds.puzzivo.feature.sudoku.SudokuScreen
 import com.tds.puzzivo.feature.themes.ThemesScreen
+import com.tds.puzzivo.feature.wordguess.WordGuessScreen
 import com.tds.puzzivo.feature.wordscramble.WordScrambleScreen
 import com.tds.puzzivo.feature.wordsearch.WordSearchScreen
 
@@ -51,6 +52,7 @@ object NavRoutes {
     const val LIGHTS_OUT = "game/lights_out"
     const val NONOGRAM = "game/nonogram"
     const val HEX_MERGE = "game/hex_merge"
+    const val WORD_GUESS = "game/word_guess"
 
     fun leaderboard(gameType: GameType) = "leaderboard/${gameType.name}"
 }
@@ -80,6 +82,7 @@ fun AppNavHost(
                         GameType.LIGHTS_OUT -> NavRoutes.LIGHTS_OUT
                         GameType.NONOGRAM -> NavRoutes.NONOGRAM
                         GameType.HEX_MERGE -> NavRoutes.HEX_MERGE
+                        GameType.WORD_GUESS -> NavRoutes.WORD_GUESS
                     }
                     navController.navigate(route)
                 },
@@ -145,6 +148,7 @@ fun AppNavHost(
                         GameType.LIGHTS_OUT -> NavRoutes.LIGHTS_OUT
                         GameType.NONOGRAM -> NavRoutes.NONOGRAM
                         GameType.HEX_MERGE -> NavRoutes.HEX_MERGE
+                        GameType.WORD_GUESS -> NavRoutes.WORD_GUESS
                     }
                     navController.navigate(route)
                 }
@@ -219,6 +223,9 @@ fun AppNavHost(
         }
         composable(NavRoutes.HEX_MERGE) {
             HexMergeScreen(onBackClick = { navController.popBackStack() })
+        }
+        composable(NavRoutes.WORD_GUESS) {
+            WordGuessScreen(onBackClick = { navController.popBackStack() })
         }
     }
 }

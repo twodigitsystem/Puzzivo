@@ -57,6 +57,9 @@
     <string name="game_word_search_title">単語探し</string>
     <string name="game_word_search_subtitle">隠された単語を探そう</string>
     <string name="game_word_search_description">グリッドに隠された単語を縦・横・斜めから見つけ出そう。</string>
+    <string name="game_word_guess_title">単語推測</string>
+    <string name="game_word_guess_subtitle">5文字の単語を当てよう</string>
+    <string name="game_word_guess_description">6回以内に隠された単語を当てよう！緑は正しい位置を示します。</string>
 
     <!-- Settings Screen -->
     <string name="settings_title">設定</string>

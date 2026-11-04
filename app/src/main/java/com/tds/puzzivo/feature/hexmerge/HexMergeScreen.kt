@@ -18,6 +18,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.Saver
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -72,9 +74,43 @@ private data class HexBoard(val values: Map<HexCoord, Int>, val score: Int, val 
     }
 }
 
+private val hexBoardSaver = Saver<HexBoard, String>(
+    save = { board ->
+        val values = board.values.entries
+            .sortedWith(compareBy({ it.key.r }, { it.key.q }))
+            .joinToString(separator = ";") { (coord, value) ->
+                "${coord.q},${coord.r},$value"
+            }
+        "${board.score}|${if (board.gameOver) 1 else 0}|$values"
+    },
+    restore = ::restoreHexBoard
+)
+
+private fun restoreHexBoard(encoded: String): HexBoard {
+    val parts = encoded.split('|', limit = 3)
+    val score = parts.getOrNull(0)?.toIntOrNull() ?: return HexBoard.create()
+    val gameOver = parts.getOrNull(1) == "1"
+    val values = parts.getOrNull(2).orEmpty().split(';')
+        .filter(String::isNotBlank)
+        .mapNotNull { entry ->
+            val fields = entry.split(',')
+            if (fields.size != 3) return@mapNotNull null
+            val q = fields[0].toIntOrNull() ?: return@mapNotNull null
+            val r = fields[1].toIntOrNull() ?: return@mapNotNull null
+            val value = fields[2].toIntOrNull() ?: return@mapNotNull null
+            if (HexCoord(q, r) !in hexCoords || value <= 0) return@mapNotNull null
+            HexCoord(q, r) to value
+        }
+        .toMap()
+
+    return if (values.isEmpty()) HexBoard.create() else HexBoard(values, score, gameOver)
+}
+
 @Composable
 fun HexMergeScreen(onBackClick: () -> Unit) {
-    var board by remember { mutableStateOf(HexBoard.create()) }
+    var board by rememberSaveable(stateSaver = hexBoardSaver) {
+        mutableStateOf(HexBoard.create())
+    }
     var showHelp by remember { mutableStateOf(false) }
 
     fun reset() { board = HexBoard.create() }

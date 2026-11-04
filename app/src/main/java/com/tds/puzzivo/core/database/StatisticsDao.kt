@@ -31,8 +31,8 @@ interface StatisticsDao {
     @Query("SELECT * FROM game_sessions WHERE gameType = :gameType AND playedDate >= :fromDate ORDER BY score DESC LIMIT 10")
     fun getTopScores(gameType: GameType, fromDate: String): Flow<List<GameSession>>
 
-    @Insert
-    suspend fun insertSession(session: GameSession)
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    suspend fun insertSession(session: GameSession): Long
 
     @Query("DELETE FROM game_sessions WHERE gameType = :gameType")
     suspend fun deleteSessionsForGame(gameType: GameType)

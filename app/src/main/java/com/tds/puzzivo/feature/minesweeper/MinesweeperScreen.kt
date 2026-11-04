@@ -18,6 +18,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.Saver
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -87,10 +89,45 @@ private data class MineBoard(
     }
 }
 
+private val mineBoardSaver = Saver<MineBoard, String>(
+    save = { board ->
+        val cellState = board.cells.joinToString(separator = "") { cell ->
+            when {
+                cell.revealed -> "1"
+                cell.flagged -> "2"
+                else -> "0"
+            }
+        }
+        "${if (board.gameOver) 1 else 0}|${if (board.won) 1 else 0}|$cellState"
+    },
+    restore = ::restoreMineBoard
+)
+
+private fun restoreMineBoard(encoded: String): MineBoard {
+    val parts = encoded.split('|')
+    val initial = MineBoard.create()
+    val cellState = parts.getOrNull(2) ?: return initial
+    if (cellState.length != initial.cells.size) return initial
+
+    return initial.copy(
+        cells = initial.cells.mapIndexed { index, cell ->
+            when (cellState[index]) {
+                '1' -> cell.copy(revealed = true)
+                '2' -> cell.copy(flagged = true)
+                else -> cell
+            }
+        },
+        gameOver = parts.getOrNull(0) == "1",
+        won = parts.getOrNull(1) == "1"
+    )
+}
+
 @Composable
 fun MinesweeperScreen(onBackClick: () -> Unit) {
-    var board by remember { mutableStateOf(MineBoard.create()) }
-    var flagMode by remember { mutableStateOf(false) }
+    var board by rememberSaveable(stateSaver = mineBoardSaver) {
+        mutableStateOf(MineBoard.create())
+    }
+    var flagMode by rememberSaveable { mutableStateOf(false) }
     var showHelp by remember { mutableStateOf(false) }
 
     fun reset() {

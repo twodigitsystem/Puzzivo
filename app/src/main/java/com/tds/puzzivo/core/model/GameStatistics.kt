@@ -1,6 +1,7 @@
 package com.tds.puzzivo.core.model
 
 import androidx.room.Entity
+import androidx.room.Index
 import androidx.room.PrimaryKey
 
 @Entity(tableName = "game_statistics")
@@ -20,9 +21,13 @@ data class GameStatistics(
     val lastPlayedDate: String? = null
 )
 
-@Entity(tableName = "game_sessions")
+@Entity(
+    tableName = "game_sessions",
+    indices = [Index(value = ["completionId"], unique = true)]
+)
 data class GameSession(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    val completionId: String,
     val gameType: GameType,
     val playedDate: String,
     val score: Int,

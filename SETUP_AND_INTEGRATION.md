@@ -77,23 +77,15 @@ The project should compile successfully with all dependencies.
    - Create database in production mode
    - Add security rules:
 
-```javascript
-rules_version = '2';
-service cloud.firestore {
-  match /databases/{database}/documents {
-    // Leaderboards - anyone can read, only authenticated users can write their own
-    match /leaderboards/{game}/{entry} {
-      allow read: if true;
-      allow write: if request.auth != null && request.auth.uid == request.resource.data.userId;
-    }
-    
-    // User profiles - users can only read/write their own
-    match /users/{userId} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
-    }
-  }
-}
+Use the checked-in rules file at the repository root:
+
+```text
+firestore.rules
 ```
+
+It matches the app's actual paths (`/leaderboards/{id}/scores/{uid}` and
+`/user_profiles/{uid}`), blocks anonymous leaderboard writes, validates score
+payloads, prevents score decreases, and denies every other document path.
 
 4. **Get Web Client ID**
    - Go to Project Settings → General
@@ -616,4 +608,3 @@ The foundation is solid. All core systems are working. Now it's time to:
 4. Launch to users!
 
 **Good luck with your launch! 🚀**
-

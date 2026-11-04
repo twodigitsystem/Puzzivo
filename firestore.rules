@@ -1,0 +1,112 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function connectedAccount() {
+      return signedIn() &&
+        request.auth.token.firebase.sign_in_provider != 'anonymous';
+    }
+
+    function validGameType() {
+      return request.resource.data.gameType in [
+        'number_merge',
+        'memory_match',
+        'quick_math',
+        'word_search',
+        'mini_sudoku',
+        'minesweeper',
+        'pattern_recall',
+        'word_scramble',
+        'lights_out',
+        'nonogram',
+        'hex_merge'
+      ];
+    }
+
+    function validLeaderboardPath(leaderboardId) {
+      return (request.resource.data.difficulty == 'EASY' &&
+          leaderboardId == request.resource.data.gameType + '_easy_' + request.resource.data.mode) ||
+        (request.resource.data.difficulty == 'MEDIUM' &&
+          leaderboardId == request.resource.data.gameType + '_medium_' + request.resource.data.mode) ||
+        (request.resource.data.difficulty == 'HARD' &&
+          leaderboardId == request.resource.data.gameType + '_hard_' + request.resource.data.mode) ||
+        (request.resource.data.difficulty == 'EXPERT' &&
+          leaderboardId == request.resource.data.gameType + '_expert_' + request.resource.data.mode);
+    }
+
+    function validScoreDocument(leaderboardId, userId) {
+      return request.resource.data.keys().hasOnly([
+          'userId',
+          'displayName',
+          'photoUrl',
+          'score',
+          'gameType',
+          'difficulty',
+          'mode',
+          'timestamp'
+        ]) &&
+        request.resource.data.userId == userId &&
+        validGameType() &&
+        validLeaderboardPath(leaderboardId) &&
+        request.resource.data.displayName is string &&
+        request.resource.data.displayName.size() <= 30 &&
+        (request.resource.data.photoUrl == null || request.resource.data.photoUrl is string) &&
+        request.resource.data.score is int &&
+        request.resource.data.score >= 0 &&
+        request.resource.data.score <= 1000000 &&
+        request.resource.data.mode is string &&
+        request.resource.data.mode.size() > 0 &&
+        request.resource.data.mode.size() <= 32 &&
+        request.resource.data.timestamp is number &&
+        request.resource.data.timestamp >= 0;
+    }
+
+    // Public leaderboard reads are intentional. Only a connected account can
+    // create or update its own score document, and scores can never decrease.
+    match /leaderboards/{leaderboardId}/scores/{userId} {
+      allow read: if true;
+      allow create: if connectedAccount() &&
+        request.auth.uid == userId &&
+        validScoreDocument(leaderboardId, userId);
+      allow update: if connectedAccount() &&
+        request.auth.uid == userId &&
+        validScoreDocument(leaderboardId, userId) &&
+        request.resource.data.userId == resource.data.userId &&
+        request.resource.data.score >= resource.data.score;
+      allow delete: if connectedAccount() && request.auth.uid == userId;
+    }
+
+    // Profiles are private. The app stores only display metadata and best
+    // scores, never puzzle answers or gameplay payloads.
+    match /user_profiles/{userId} {
+      allow read: if signedIn() && request.auth.uid == userId;
+      allow create: if signedIn() && request.auth.uid == userId &&
+        request.resource.data.keys().hasOnly([
+          'userId',
+          'displayName',
+          'photoUrl',
+          'createdAt',
+          'bestScores'
+        ]) &&
+        request.resource.data.userId == userId &&
+        request.resource.data.displayName is string &&
+        request.resource.data.displayName.size() <= 100 &&
+        (request.resource.data.photoUrl == null || request.resource.data.photoUrl is string) &&
+        request.resource.data.createdAt is number &&
+        request.resource.data.bestScores is map;
+      allow update: if signedIn() && request.auth.uid == userId &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['bestScores']) &&
+        request.resource.data.bestScores is map;
+      allow delete: if signedIn() && request.auth.uid == userId;
+    }
+
+    // Deny every collection not explicitly used by the client.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

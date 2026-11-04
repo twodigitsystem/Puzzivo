@@ -48,6 +48,7 @@ sealed class AdLoadState {
 @Singleton
 class AdManager @Inject constructor(
     private val context: Context,
+    private val remoteConfigManager: com.tds.puzzivo.core.config.RemoteConfigManager,
     private val canRequestAds: () -> Boolean = { true }
 ) {
 
@@ -64,13 +65,14 @@ class AdManager @Inject constructor(
     }
 
     /**
-     * Aggressive preloading: refresh ad every 30 seconds if not loaded
+     * Refresh ad based on Remote Config refresh interval
      */
     private fun startAdRefreshCycle() {
         refreshJob?.cancel()
         refreshJob = scope.launch {
             while (true) {
-                delay(30_000) // 30 seconds
+                val refreshIntervalMs = remoteConfigManager.currentAdRefreshIntervalSeconds() * 1000L
+                delay(refreshIntervalMs)
                 if (rewardedAd == null && !isLoadingRewarded && canRequestAds()) {
                     preloadRewardedAd()
                 }

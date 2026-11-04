@@ -21,6 +21,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -48,6 +49,7 @@ import com.tds.puzzivo.core.design.TrackGameStartEffect
 import com.tds.puzzivo.core.design.ResultDialog
 import com.tds.puzzivo.core.design.SecondaryButton
 import com.tds.puzzivo.core.design.TextSecondary
+import com.tds.puzzivo.core.util.booleanListSaver
 
 private const val SIZE = 5
 
@@ -60,13 +62,17 @@ private val nonogramPatterns = listOf(
 
 @Composable
 fun NonogramScreen(onBackClick: () -> Unit) {
-    var patternIndex by remember { mutableIntStateOf(0) }
+    var patternIndex by rememberSaveable { mutableIntStateOf(0) }
     val solution = nonogramPatterns[patternIndex % nonogramPatterns.size]
-    var filled by remember { mutableStateOf(List(SIZE * SIZE) { false }) }
-    var markedEmpty by remember { mutableStateOf(List(SIZE * SIZE) { false }) }
-    var markMode by remember { mutableStateOf(false) }
+    var filled by rememberSaveable(stateSaver = booleanListSaver) {
+        mutableStateOf(List(SIZE * SIZE) { false })
+    }
+    var markedEmpty by rememberSaveable(stateSaver = booleanListSaver) {
+        mutableStateOf(List(SIZE * SIZE) { false })
+    }
+    var markMode by rememberSaveable { mutableStateOf(false) }
     var showHelp by remember { mutableStateOf(false) }
-    var complete by remember { mutableStateOf(false) }
+    var complete by rememberSaveable { mutableStateOf(false) }
 
     fun reset() {
         patternIndex = (patternIndex + 1) % nonogramPatterns.size

@@ -45,8 +45,10 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.tds.puzzivo.R
 import com.tds.puzzivo.core.design.AccentCyan
@@ -74,6 +76,8 @@ fun HomeScreen(
     val uiState by viewModel.uiState.collectAsState()
     val scrollState = rememberScrollState()
     val settingsDescription = stringResource(R.string.action_settings)
+    val dailyChallengeDescription = stringResource(R.string.home_open_daily_challenge)
+    val profileDescription = stringResource(R.string.home_open_profile)
 
     Surface(
         color = NavyBackground,
@@ -124,65 +128,26 @@ fun HomeScreen(
                 }
 
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    IconButton(
-                        onClick = onNavigateToDailyChallenge,
-                        modifier = Modifier.semantics { contentDescription = "Daily challenge" }
-                    ) {
-                        Surface(
-                            color = NavySurface,
-                            shape = CircleShape,
-                            border = androidx.compose.foundation.BorderStroke(1.dp, CardBorderColor),
-                            modifier = Modifier.size(44.dp)
-                        ) {
-                            Box(contentAlignment = Alignment.Center) {
-                                Icon(
-                                    imageVector = Icons.Outlined.CalendarToday,
-                                    contentDescription = null,
-                                    tint = AccentYellow
-                                )
-                            }
-                        }
-                    }
+                    HomeHeaderAction(
+                        icon = Icons.Outlined.CalendarToday,
+                        contentDescription = dailyChallengeDescription,
+                        tint = AccentYellow,
+                        onClick = onNavigateToDailyChallenge
+                    )
 
-                    IconButton(
-                        onClick = onNavigateToProfile,
-                        modifier = Modifier.semantics { contentDescription = "Profile" }
-                    ) {
-                        Surface(
-                            color = NavySurface,
-                            shape = CircleShape,
-                            border = androidx.compose.foundation.BorderStroke(1.dp, CardBorderColor),
-                            modifier = Modifier.size(44.dp)
-                        ) {
-                            Box(contentAlignment = Alignment.Center) {
-                                Icon(
-                                    imageVector = Icons.Outlined.Person,
-                                    contentDescription = null,
-                                    tint = TextPrimary
-                                )
-                            }
-                        }
-                    }
+                    HomeHeaderAction(
+                        icon = Icons.Outlined.Person,
+                        contentDescription = profileDescription,
+                        tint = TextPrimary,
+                        onClick = onNavigateToProfile
+                    )
 
-                    IconButton(
-                        onClick = onNavigateToSettings,
-                        modifier = Modifier.semantics { contentDescription = settingsDescription }
-                    ) {
-                        Surface(
-                            color = NavySurface,
-                            shape = CircleShape,
-                            border = androidx.compose.foundation.BorderStroke(1.dp, CardBorderColor),
-                            modifier = Modifier.size(44.dp)
-                        ) {
-                            Box(contentAlignment = Alignment.Center) {
-                                Icon(
-                                    imageVector = Icons.Outlined.Settings,
-                                    contentDescription = null,
-                                    tint = TextPrimary
-                                )
-                            }
-                        }
-                    }
+                    HomeHeaderAction(
+                        icon = Icons.Outlined.Settings,
+                        contentDescription = settingsDescription,
+                        tint = TextPrimary,
+                        onClick = onNavigateToSettings
+                    )
                 }
             }
 
@@ -197,61 +162,80 @@ fun HomeScreen(
                         .fillMaxWidth()
                         .padding(vertical = 8.dp)
                 ) {
-                    Row(
-                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 14.dp),
-                        verticalAlignment = Alignment.CenterVertically
+                    Column(
+                        modifier = Modifier.padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(14.dp)
                     ) {
-                        Icon(
-                            imageVector = Icons.Outlined.LocalFireDepartment,
-                            contentDescription = null,
-                            tint = AccentOrange,
-                            modifier = Modifier.size(28.dp)
-                        )
-                        Spacer(modifier = Modifier.width(10.dp))
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text(
-                                text = pluralStringResource(R.plurals.home_days_format, uiState.userPreferences.currentStreak, uiState.userPreferences.currentStreak),
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 16.sp,
-                                color = AccentOrange
-                            )
-                            Text(
-                                text = stringResource(
-                                    R.string.home_streak_summary,
-                                    stringResource(R.string.home_daily_streak),
-                                    uiState.userPreferences.bestStreak
-                                ),
-                                fontSize = 12.sp,
-                                color = TextSecondary
-                            )
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Surface(
+                                color = AccentOrange.copy(alpha = 0.16f),
+                                shape = CircleShape,
+                                modifier = Modifier.size(42.dp)
+                            ) {
+                                Box(contentAlignment = Alignment.Center) {
+                                    Icon(
+                                        imageVector = Icons.Outlined.LocalFireDepartment,
+                                        contentDescription = null,
+                                        tint = AccentOrange,
+                                        modifier = Modifier.size(24.dp)
+                                    )
+                                }
+                            }
+                            Spacer(modifier = Modifier.width(12.dp))
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = stringResource(R.string.home_progress_title),
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    color = TextPrimary
+                                )
+                                Text(
+                                    text = stringResource(
+                                        R.string.home_streak_summary,
+                                        stringResource(R.string.home_daily_streak),
+                                        uiState.userPreferences.bestStreak
+                                    ),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = TextSecondary
+                                )
+                            }
                         }
 
-                        Box(
-                            modifier = Modifier
-                                .width(1.dp)
-                                .height(36.dp)
-                                .background(CardBorderColor)
-                        )
-
-                        Spacer(modifier = Modifier.width(14.dp))
-                        Icon(
-                            imageVector = Icons.Outlined.VideogameAsset,
-                            contentDescription = null,
-                            tint = AccentCyan,
-                            modifier = Modifier.size(28.dp)
-                        )
-                        Spacer(modifier = Modifier.width(10.dp))
-                        Column(horizontalAlignment = Alignment.End) {
-                            Text(
-                                text = "${uiState.userPreferences.totalGamesPlayed}",
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 16.sp,
-                                color = AccentCyan
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceEvenly,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            HomeMetric(
+                                value = pluralStringResource(
+                                    R.plurals.home_days_format,
+                                    uiState.userPreferences.currentStreak,
+                                    uiState.userPreferences.currentStreak
+                                ),
+                                label = stringResource(R.string.home_current_streak),
+                                color = AccentOrange,
+                                modifier = Modifier.weight(1f)
                             )
-                            Text(
-                                text = stringResource(R.string.home_games_played),
-                                fontSize = 12.sp,
-                                color = TextSecondary
+                            HomeMetricDivider()
+                            HomeMetric(
+                                value = uiState.userPreferences.totalGamesPlayed.toString(),
+                                label = stringResource(R.string.home_games_played),
+                                color = AccentCyan,
+                                modifier = Modifier.weight(1f)
+                            )
+                            HomeMetricDivider()
+                            HomeMetric(
+                                value = pluralStringResource(
+                                    R.plurals.home_days_format,
+                                    uiState.userPreferences.bestStreak,
+                                    uiState.userPreferences.bestStreak
+                                ),
+                                label = stringResource(R.string.home_best_streak),
+                                color = AccentYellow,
+                                modifier = Modifier.weight(1f)
                             )
                         }
                     }
@@ -267,26 +251,47 @@ fun HomeScreen(
                     onClick = { onNavigateToGame(pickGame) },
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Column(
-                        modifier = Modifier.padding(16.dp)
-                    ) {
+                    val pickColor = Color(pickGame.primaryColorHex)
+                    Column(modifier = Modifier.padding(18.dp)) {
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Surface(
-                                color = AccentYellow.copy(alpha = 0.2f),
-                                shape = RoundedCornerShape(20.dp),
-                                border = androidx.compose.foundation.BorderStroke(1.dp, AccentYellow)
+                            Row(
+                                modifier = Modifier.weight(1f),
+                                verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Text(
-                                     text = stringResource(R.string.home_todays_pick),
-                                    color = AccentYellow,
-                                    fontWeight = FontWeight.Bold,
-                                    fontSize = 12.sp,
-                                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
-                                )
+                                Box(
+                                    modifier = Modifier
+                                        .size(50.dp)
+                                        .background(pickColor.copy(alpha = 0.18f), RoundedCornerShape(14.dp))
+                                        .border(1.dp, pickColor, RoundedCornerShape(14.dp)),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Icon(
+                                        imageVector = iconForGame(pickGame),
+                                        contentDescription = null,
+                                        tint = pickColor
+                                    )
+                                }
+                                Spacer(modifier = Modifier.width(12.dp))
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(
+                                        text = stringResource(R.string.home_todays_pick),
+                                        color = AccentYellow,
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 12.sp
+                                    )
+                                    Text(
+                                        text = stringResource(pickGame.titleRes),
+                                        style = MaterialTheme.typography.titleLarge,
+                                        fontWeight = FontWeight.Bold,
+                                        color = TextPrimary,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis
+                                    )
+                                }
                             }
 
                             if (uiState.todayPick.isCompleted) {
@@ -306,48 +311,70 @@ fun HomeScreen(
                             }
                         }
 
-                        Spacer(modifier = Modifier.height(12.dp))
-
-                        Text(
-                            text = stringResource(pickGame.titleRes),
-                            style = MaterialTheme.typography.titleLarge,
-                            fontWeight = FontWeight.Bold,
-                            color = TextPrimary
-                        )
-
                         Text(
                             text = stringResource(pickGame.descriptionRes),
                             style = MaterialTheme.typography.bodyMedium,
                             color = TextSecondary,
-                            modifier = Modifier.padding(top = 4.dp, bottom = 12.dp)
+                            maxLines = 2,
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier.padding(top = 14.dp)
                         )
+
+                        Spacer(modifier = Modifier.height(14.dp))
 
                         Surface(
                             color = AccentYellow,
-                            shape = RoundedCornerShape(10.dp),
+                            contentColor = NavyBackground,
+                            shape = RoundedCornerShape(12.dp),
                             modifier = Modifier.fillMaxWidth()
                         ) {
-                            Text(
-                                text = stringResource(R.string.action_play_today),
-                                color = NavyBackground,
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 14.sp,
-                                textAlign = TextAlign.Center,
-                                modifier = Modifier.padding(vertical = 10.dp)
-                            )
+                            Row(
+                                modifier = Modifier.padding(vertical = 12.dp),
+                                horizontalArrangement = Arrangement.Center,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = stringResource(R.string.action_play_today),
+                                    color = NavyBackground,
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 14.sp
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Icon(
+                                    imageVector = Icons.Outlined.ChevronRight,
+                                    contentDescription = null,
+                                    tint = NavyBackground
+                                )
+                            }
                         }
                     }
                 }
 
                 Spacer(modifier = Modifier.height(20.dp))
 
-                Text(
-                     text = stringResource(R.string.home_select_game),
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = TextPrimary,
-                    modifier = Modifier.padding(bottom = 12.dp)
-                )
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 12.dp),
+                    verticalAlignment = Alignment.Bottom,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
+                        text = stringResource(R.string.home_select_game),
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = TextPrimary
+                    )
+                    Text(
+                        text = pluralStringResource(
+                            R.plurals.home_game_count_format,
+                            GameType.entries.size,
+                            GameType.entries.size
+                        ),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = TextSecondary
+                    )
+                }
 
                 // 2x2 game grid keeps the hub compact and scannable.
                 GameType.entries.chunked(2).forEach { rowGames ->
@@ -400,23 +427,34 @@ fun HomeScreen(
                                 onClick = { onNavigateToGame(gameType) },
                                 modifier = Modifier
                                     .weight(1f)
-                                    .height(174.dp)
+                                    .height(158.dp)
                                     .semantics {
                                         contentDescription = gameCardDescription
                                     }
                             ) {
                                 Column(
                                     modifier = Modifier.padding(14.dp),
-                                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                                    verticalArrangement = Arrangement.spacedBy(7.dp)
                                 ) {
-                                    Box(
-                                        modifier = Modifier
-                                            .size(46.dp)
-                                            .background(color.copy(alpha = 0.2f), shape = RoundedCornerShape(12.dp))
-                                            .border(1.dp, color, shape = RoundedCornerShape(12.dp)),
-                                        contentAlignment = Alignment.Center
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        verticalAlignment = Alignment.CenterVertically
                                     ) {
-                                        Icon(imageVector = icon, contentDescription = null, tint = color)
+                                        Box(
+                                            modifier = Modifier
+                                                .size(42.dp)
+                                                .background(color.copy(alpha = 0.2f), shape = RoundedCornerShape(12.dp))
+                                                .border(1.dp, color, shape = RoundedCornerShape(12.dp)),
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            Icon(imageVector = icon, contentDescription = null, tint = color)
+                                        }
+                                        Spacer(modifier = Modifier.weight(1f))
+                                        Icon(
+                                            imageVector = Icons.Outlined.ChevronRight,
+                                            contentDescription = null,
+                                            tint = color
+                                        )
                                     }
                                     Text(
                                         text = stringResource(gameType.titleRes),
@@ -428,21 +466,24 @@ fun HomeScreen(
                                         text = stringResource(gameType.subtitleRes),
                                         style = MaterialTheme.typography.bodyMedium,
                                         color = TextSecondary,
-                                        maxLines = 1
+                                        maxLines = 2,
+                                        overflow = TextOverflow.Ellipsis
                                     )
-                                    Text(
-                                        text = statText,
-                                        fontSize = 12.sp,
-                                        color = color,
-                                        fontWeight = FontWeight.SemiBold,
-                                        maxLines = 1
-                                    )
-                                    Icon(
-                                        imageVector = Icons.Outlined.ChevronRight,
-                                        contentDescription = null,
-                                        tint = color,
-                                        modifier = Modifier.align(Alignment.End)
-                                    )
+                                    Spacer(modifier = Modifier.weight(1f))
+                                    Surface(
+                                        color = color.copy(alpha = 0.12f),
+                                        shape = RoundedCornerShape(8.dp)
+                                    ) {
+                                        Text(
+                                            text = statText,
+                                            fontSize = 11.sp,
+                                            color = color,
+                                            fontWeight = FontWeight.SemiBold,
+                                            maxLines = 1,
+                                            overflow = TextOverflow.Ellipsis,
+                                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 5.dp)
+                                        )
+                                    }
                                 }
                             }
                         }
@@ -458,4 +499,74 @@ fun HomeScreen(
             BannerAdView(modifier = Modifier.padding(vertical = 8.dp))
         }
     }
+}
+
+@Composable
+private fun HomeHeaderAction(
+    icon: ImageVector,
+    contentDescription: String,
+    tint: Color,
+    onClick: () -> Unit
+) {
+    IconButton(
+        onClick = onClick,
+        modifier = Modifier.semantics { this.contentDescription = contentDescription }
+    ) {
+        Surface(
+            color = NavySurface,
+            shape = CircleShape,
+            border = androidx.compose.foundation.BorderStroke(1.dp, CardBorderColor),
+            modifier = Modifier.size(42.dp)
+        ) {
+            Box(contentAlignment = Alignment.Center) {
+                Icon(imageVector = icon, contentDescription = null, tint = tint)
+            }
+        }
+    }
+}
+
+@Composable
+private fun HomeMetric(
+    value: String,
+    label: String,
+    color: Color,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(
+            text = value,
+            color = color,
+            fontWeight = FontWeight.Bold,
+            fontSize = 15.sp,
+            maxLines = 1
+        )
+        Text(
+            text = label,
+            color = TextSecondary,
+            fontSize = 11.sp,
+            textAlign = TextAlign.Center,
+            maxLines = 1
+        )
+    }
+}
+
+@Composable
+private fun HomeMetricDivider() {
+    Box(
+        modifier = Modifier
+            .width(1.dp)
+            .height(32.dp)
+            .background(CardBorderColor)
+    )
+}
+
+private fun iconForGame(gameType: GameType): ImageVector = when (gameType) {
+    GameType.NUMBER_MERGE -> Icons.Outlined.Calculate
+    GameType.MEMORY_MATCH -> Icons.Outlined.Style
+    GameType.QUICK_MATH -> Icons.Outlined.Bolt
+    GameType.WORD_SEARCH -> Icons.Outlined.Search
+    else -> Icons.Outlined.VideogameAsset
 }

@@ -17,13 +17,17 @@ import javax.inject.Singleton
 class AppInitializer @Inject constructor(
     private val authManager: AuthManager,
     private val achievementManager: AchievementManager,
-    private val progressionManager: ProgressionManager
+    private val progressionManager: ProgressionManager,
+    private val remoteConfigManager: com.tds.puzzivo.core.config.RemoteConfigManager
 ) {
     
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     
     fun initialize() {
         scope.launch {
+            // Fetch and activate remote config parameters
+            remoteConfigManager.fetchAndActivate()
+
             // Sign in anonymously if no user
             authManager.ensureSignedIn()
             

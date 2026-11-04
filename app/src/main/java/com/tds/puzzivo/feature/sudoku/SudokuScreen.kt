@@ -20,6 +20,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -48,6 +49,7 @@ import com.tds.puzzivo.core.design.ResultDialog
 import com.tds.puzzivo.core.design.SecondaryButton
 import com.tds.puzzivo.core.design.TextPrimary
 import com.tds.puzzivo.core.design.TextSecondary
+import com.tds.puzzivo.core.util.intListSaver
 
 private data class SudokuPuzzle(
     val solution: List<Int>,
@@ -74,19 +76,21 @@ private data class SudokuPuzzle(
 
 @Composable
 fun SudokuScreen(onBackClick: () -> Unit) {
-    var puzzle by remember { mutableStateOf(SudokuPuzzle.create()) }
-    var values by remember { mutableStateOf(List(36) { index -> if (index in puzzle.givens) puzzle.solution[index] else 0 }) }
-    var selectedIndex by remember { mutableStateOf<Int?>(null) }
-    var mistakes by remember { mutableIntStateOf(0) }
-    var hintsUsed by remember { mutableIntStateOf(0) }
-    var puzzleNumber by remember { mutableIntStateOf(0) }
+    var puzzleNumber by rememberSaveable { mutableIntStateOf(0) }
+    val puzzle = SudokuPuzzle.create(puzzleNumber)
+    var values by rememberSaveable(stateSaver = intListSaver) {
+        mutableStateOf(List(36) { index -> if (index in puzzle.givens) puzzle.solution[index] else 0 })
+    }
+    var selectedIndex by rememberSaveable { mutableStateOf<Int?>(null) }
+    var mistakes by rememberSaveable { mutableIntStateOf(0) }
+    var hintsUsed by rememberSaveable { mutableIntStateOf(0) }
     var showHelp by remember { mutableStateOf(false) }
     var showResult by remember { mutableStateOf(false) }
 
     fun resetPuzzle() {
         puzzleNumber += 1
-        puzzle = SudokuPuzzle.create(puzzleNumber)
-        values = List(36) { index -> if (index in puzzle.givens) puzzle.solution[index] else 0 }
+        val nextPuzzle = SudokuPuzzle.create(puzzleNumber)
+        values = List(36) { index -> if (index in nextPuzzle.givens) nextPuzzle.solution[index] else 0 }
         selectedIndex = null
         mistakes = 0
         hintsUsed = 0

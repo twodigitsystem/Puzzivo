@@ -1,0 +1,88 @@
+<resources>
+    <string name="app_name">Puzzivo</string>
+
+    <!-- General Navigation & Actions -->
+    <string name="action_restart">やり直す</string>
+    <string name="action_main_menu">メインメニュー</string>
+    <string name="action_play_again">もう一度プレイ</string>
+    <string name="action_got_it">了解！</string>
+    <string name="action_new_game">新しいゲーム</string>
+    <string name="action_back">戻る</string>
+    <string name="action_help">遊び方</string>
+    <string name="action_settings">設定</string>
+    <string name="action_play_today">本日のピックアップ</string>
+    <string name="action_pause">一時停止</string>
+    <string name="action_resume">再開</string>
+    <string name="action_leave">終了</string>
+    <string name="action_keep_playing">続ける</string>
+    <string name="action_cancel">キャンセル</string>
+    <string name="action_reset_data">データをリセット</string>
+
+    <!-- Home Screen -->
+    <string name="home_todays_pick">本日のピックアップ</string>
+    <string name="home_daily_streak">連続プレイ</string>
+    <string name="home_games_played">プレイ回数</string>
+    <string name="home_select_game">ミニゲームを選択</string>
+    <string name="home_brand_tagline">思考。プレイ。繰り返し。</string>
+    <string name="home_open_daily_challenge">デイリーチャレンジ</string>
+    <string name="home_open_profile">プロフィール</string>
+    <string name="home_progress_title">進捗状況</string>
+    <string name="home_current_streak">現在の記録</string>
+    <string name="home_best_streak">最高記録</string>
+    <plurals name="home_game_count_format">
+        <item quantity="other">%1$d 個のゲーム</item>
+    </plurals>
+    <plurals name="home_days_format">
+        <item quantity="other">%1$d 日間</item>
+    </plurals>
+    <string name="home_streak_summary">%1$s (最高: %2$d)</string>
+    <string name="home_completed">完了</string>
+    <string name="home_best_score_format">ハイスコア: %1$d</string>
+    <plurals name="home_best_moves_format">
+        <item quantity="other">最少手: %1$d 手</item>
+    </plurals>
+    <string name="home_no_score_yet">スコアなし</string>
+    <string name="home_solved_format">クリア: %1$d / %2$d</string>
+
+    <!-- Game metadata -->
+    <string name="game_number_merge_title">数字マージ</string>
+    <string name="game_number_merge_subtitle">スライド＆合体</string>
+    <string name="game_number_merge_description">4×4グリッドでタイルをスライドさせて同じ数字を組み合わせ、ハイスコアを目指そう！</string>
+    <string name="game_memory_match_title">神経衰弱</string>
+    <string name="game_memory_match_subtitle">ペアを見つけよう</string>
+    <string name="game_memory_match_description">カードをめくって記憶力を試し、最小手数で8つのペアをすべて見つけよう。</string>
+    <string name="game_quick_math_title">早押し計算</string>
+    <string name="game_quick_math_subtitle">60秒チャレンジ</string>
+    <string name="game_quick_math_description">60秒の制限時間内に暗算問題を解いてスコアを伸ばそう！</string>
+    <string name="game_word_search_title">単語探し</string>
+    <string name="game_word_search_subtitle">隠された単語を探そう</string>
+    <string name="game_word_search_description">グリッドに隠された単語を縦・横・斜めから見つけ出そう。</string>
+
+    <!-- Settings Screen -->
+    <string name="settings_title">設定</string>
+    <string name="settings_preferences">環境設定</string>
+    <string name="settings_sound_effects">効果音</string>
+    <string name="settings_sound_desc">ゲームプレイ中の音を再生</string>
+    <string name="settings_haptics">触感フィードバック</string>
+    <string name="settings_haptics_desc">操作時に振動させる</string>
+    <string name="settings_spread_word">アプリを共有</string>
+    <string name="settings_share_app">友達にPuzzivoを教える</string>
+    <string name="settings_rate_app">Playストアで評価</string>
+    <string name="settings_about_data">情報・データ</string>
+    <string name="settings_privacy_policy">プライバシーポリシー</string>
+    <string name="settings_support">サポート・お問い合わせ</string>
+    <string name="settings_reset_data">データをリセット</string>
+
+    <!-- Dialogs -->
+    <string name="dialog_leave_title">ゲームを終了しますか？</string>
+    <string name="dialog_new_best">新記録達成！</string>
+    <string name="dialog_best_format">最高: %1$s</string>
+
+    <!-- Game Themes -->
+    <string name="theme_navy_dark">ネイビーダーク</string>
+    <string name="theme_forest_green">フォレストグリーン</string>
+    <string name="theme_ocean_blue">オーシャンブルー</string>
+    <string name="theme_sunset_orange">サンセットオレンジ</string>
+    <string name="theme_midnight_purple">ミッドナイトパープル</string>
+    <string name="theme_rose_gold">ローズゴールド</string>
+</resources>

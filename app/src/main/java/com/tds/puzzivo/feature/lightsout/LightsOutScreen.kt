@@ -18,6 +18,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -42,15 +43,18 @@ import com.tds.puzzivo.core.design.PuzzivoTopBar
 import com.tds.puzzivo.core.design.RecordGameCompletionEffect
 import com.tds.puzzivo.core.design.TrackGameStartEffect
 import com.tds.puzzivo.core.design.ResultDialog
+import com.tds.puzzivo.core.util.booleanListSaver
 
 private const val GRID = 5
 
 @Composable
 fun LightsOutScreen(onBackClick: () -> Unit) {
-    var lights by remember { mutableStateOf(createLightsOutBoard()) }
-    var moves by remember { mutableIntStateOf(0) }
+    var lights by rememberSaveable(stateSaver = booleanListSaver) {
+        mutableStateOf(createLightsOutBoard())
+    }
+    var moves by rememberSaveable { mutableIntStateOf(0) }
     var showHelp by remember { mutableStateOf(false) }
-    var complete by remember { mutableStateOf(false) }
+    var complete by rememberSaveable { mutableStateOf(false) }
 
     fun reset() {
         lights = createLightsOutBoard()

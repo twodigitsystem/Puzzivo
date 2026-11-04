@@ -7,6 +7,7 @@ import com.tds.puzzivo.core.manager.*
 import com.tds.puzzivo.core.model.*
 import com.tds.puzzivo.core.network.NetworkManager
 import kotlinx.coroutines.flow.*
+import java.util.UUID
 
 /**
  * Base ViewModel functionality for game integration
@@ -66,7 +67,8 @@ abstract class BaseGameViewModel(
             won = won,
             difficulty = difficulty,
             hintsUsed = hintsUsed,
-            moves = movesOrAttempts
+            moves = movesOrAttempts,
+            completionId = UUID.randomUUID().toString()
         )
 
         // Award XP and coins if won

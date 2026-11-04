@@ -5,8 +5,6 @@ import com.tds.puzzivo.core.model.DifficultyLevel
 import com.tds.puzzivo.core.model.GameType
 import com.tds.puzzivo.core.storage.PreferencesRepository
 import kotlinx.coroutines.flow.first
-import java.util.Collections
-import java.util.LinkedHashSet
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -25,28 +23,17 @@ class GameCompletionRecorder @Inject constructor(
     private val progressionManager: ProgressionManager,
     private val challengeManager: ChallengeManager,
     private val analyticsManager: AnalyticsManager,
-    private val leaderboardManager: LeaderboardManager
+    private val leaderboardManager: LeaderboardManager,
+    private val remoteConfigManager: com.tds.puzzivo.core.config.RemoteConfigManager
 ) {
-    private val recordedCompletionIds = Collections.synchronizedSet(
-        object : LinkedHashSet<String>() {
-            override fun add(element: String): Boolean {
-                val added = super.add(element)
-                if (size > 1_000) iterator().remove()
-                return added
-            }
-        }
-    )
-
     suspend fun record(request: GameCompletionRequest) {
-        if (!recordedCompletionIds.add(request.completionId)) return
-
         val initialPreferences = preferencesRepository.userPreferencesFlow.first()
         val difficulty = request.difficulty ?: initialPreferences.selectedDifficulty
         val finalScore = (request.score * difficulty.scoreMultiplier)
             .toInt()
             .coerceAtLeast(0)
 
-        statisticsManager.recordGameSession(
+        val recorded = statisticsManager.recordGameSession(
             gameType = request.gameType,
             score = finalScore,
             durationSeconds = request.durationSeconds.coerceAtLeast(0),
@@ -54,8 +41,10 @@ class GameCompletionRecorder @Inject constructor(
             difficulty = difficulty,
             mode = request.mode,
             hintsUsed = request.hintsUsed.coerceAtLeast(0),
-            moves = request.moves.coerceAtLeast(0)
+            moves = request.moves.coerceAtLeast(0),
+            completionId = request.completionId
         )
+        if (!recorded) return
 
         // Preserve the existing local streak and daily-pick behavior.
         preferencesRepository.recordGameCompleted(request.gameType)
@@ -83,10 +72,17 @@ class GameCompletionRecorder @Inject constructor(
         }
 
         if (request.won) {
-            val xp = calculateReward(finalScore, difficulty, baseSmall = 10, baseMedium = 25, baseLarge = 50)
-            val coins = calculateReward(finalScore, difficulty, baseSmall = 5, baseMedium = 10, baseLarge = 25)
-            progressionManager.addXP(xp)
-            progressionManager.addCoins(coins)
+            val baseXp = calculateReward(finalScore, difficulty, baseSmall = 10, baseMedium = 25, baseLarge = 50)
+            val baseCoins = calculateReward(finalScore, difficulty, baseSmall = 5, baseMedium = 10, baseLarge = 25)
+            
+            val xpMultiplier = remoteConfigManager.currentXpMultiplier()
+            val coinMultiplier = remoteConfigManager.currentCoinMultiplier()
+
+            val finalXp = (baseXp * xpMultiplier).toInt().coerceAtLeast(1)
+            val finalCoins = (baseCoins * coinMultiplier).toInt().coerceAtLeast(1)
+
+            progressionManager.addXP(finalXp)
+            progressionManager.addCoins(finalCoins)
 
             challengeManager.completeIfMatchingToday(request.gameType)
             leaderboardManager.submitScore(

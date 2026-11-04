@@ -27,6 +27,15 @@
     <string name="home_games_played">Games Played</string>
     <string name="home_select_game">Choose a Mini-Game</string>
     <string name="home_brand_tagline">Think. Play. Repeat.</string>
+    <string name="home_open_daily_challenge">Open daily challenge</string>
+    <string name="home_open_profile">Open profile</string>
+    <string name="home_progress_title">Your progress</string>
+    <string name="home_current_streak">Current streak</string>
+    <string name="home_best_streak">Best streak</string>
+    <plurals name="home_game_count_format">
+        <item quantity="one">%1$d game to explore</item>
+        <item quantity="other">%1$d games to explore</item>
+    </plurals>
     <plurals name="home_days_format">
         <item quantity="one">%1$d Day</item>
         <item quantity="other">%1$d Days</item>

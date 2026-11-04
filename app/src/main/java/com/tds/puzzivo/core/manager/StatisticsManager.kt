@@ -1,18 +1,22 @@
 package com.tds.puzzivo.core.manager
 
 import com.tds.puzzivo.core.database.StatisticsDao
+import com.tds.puzzivo.core.database.PuzzivoDatabase
 import com.tds.puzzivo.core.model.DifficultyLevel
 import com.tds.puzzivo.core.model.GameSession
 import com.tds.puzzivo.core.model.GameStatistics
 import com.tds.puzzivo.core.model.GameType
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
+import androidx.room.withTransaction
 import java.time.LocalDate
+import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
 class StatisticsManager @Inject constructor(
+    private val database: PuzzivoDatabase,
     private val statisticsDao: StatisticsDao
 ) {
 
@@ -37,26 +41,31 @@ class StatisticsManager @Inject constructor(
         difficulty: DifficultyLevel,
         mode: String = "classic",
         hintsUsed: Int = 0,
-        moves: Int = 0
-    ) {
-        val today = LocalDate.now().toString()
-        
-        // Record session
-        val session = GameSession(
-            gameType = gameType,
-            playedDate = today,
-            score = score,
-            durationSeconds = durationSeconds,
-            won = won,
-            difficulty = difficulty,
-            mode = mode,
-            hintsUsed = hintsUsed,
-            moves = moves
-        )
-        statisticsDao.insertSession(session)
-        
-        // Update statistics
-        updateStatistics(gameType, score, durationSeconds, won, hintsUsed, today)
+        moves: Int = 0,
+        completionId: String = UUID.randomUUID().toString()
+    ): Boolean {
+        return database.withTransaction {
+            val today = LocalDate.now().toString()
+            val session = GameSession(
+                completionId = completionId,
+                gameType = gameType,
+                playedDate = today,
+                score = score,
+                durationSeconds = durationSeconds,
+                won = won,
+                difficulty = difficulty,
+                mode = mode,
+                hintsUsed = hintsUsed,
+                moves = moves
+            )
+            val insertedId = statisticsDao.insertSession(session)
+            if (insertedId == -1L) {
+                false
+            } else {
+                updateStatistics(gameType, score, durationSeconds, won, hintsUsed, today)
+                true
+            }
+        }
     }
 
     private suspend fun updateStatistics(

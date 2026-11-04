@@ -21,6 +21,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -47,16 +48,19 @@ import com.tds.puzzivo.core.design.RecordGameCompletionEffect
 import com.tds.puzzivo.core.design.TrackGameStartEffect
 import com.tds.puzzivo.core.design.ResultDialog
 import com.tds.puzzivo.core.design.TextSecondary
+import com.tds.puzzivo.core.util.intListSaver
 import kotlin.random.Random
 
 @Composable
 fun PatternRecallScreen(onBackClick: () -> Unit) {
-    var sequence by remember { mutableStateOf(listOf(Random.nextInt(9))) }
-    var inputIndex by remember { mutableIntStateOf(0) }
-    var litCell by remember { mutableStateOf<Int?>(null) }
-    var isShowing by remember { mutableStateOf(true) }
-    var round by remember { mutableIntStateOf(1) }
-    var gameOver by remember { mutableStateOf(false) }
+    var sequence by rememberSaveable(stateSaver = intListSaver) {
+        mutableStateOf(listOf(Random.nextInt(9)))
+    }
+    var inputIndex by rememberSaveable { mutableIntStateOf(0) }
+    var litCell by rememberSaveable { mutableStateOf<Int?>(null) }
+    var isShowing by rememberSaveable { mutableStateOf(true) }
+    var round by rememberSaveable { mutableIntStateOf(1) }
+    var gameOver by rememberSaveable { mutableStateOf(false) }
     var showHelp by remember { mutableStateOf(false) }
 
     LaunchedEffect(sequence, gameOver) {

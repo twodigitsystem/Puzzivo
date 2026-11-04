@@ -1,0 +1,94 @@
+<resources>
+    <string name="app_name">Puzzivo</string>
+
+    <!-- General Navigation & Actions -->
+    <string name="action_restart">Reiniciar</string>
+    <string name="action_main_menu">Menu Principal</string>
+    <string name="action_play_again">Jogar Novamente</string>
+    <string name="action_got_it">Entendi!</string>
+    <string name="action_new_game">Novo Jogo</string>
+    <string name="action_back">Voltar</string>
+    <string name="action_help">Como jogar</string>
+    <string name="action_settings">Configurações</string>
+    <string name="action_play_today">Escolha Diária</string>
+    <string name="action_pause">Pausar</string>
+    <string name="action_resume">Continuar</string>
+    <string name="action_leave">Sair</string>
+    <string name="action_keep_playing">Continuar Jogando</string>
+    <string name="action_cancel">Cancelar</string>
+    <string name="action_reset_data">Redefinir Dados</string>
+
+    <!-- Home Screen -->
+    <string name="home_todays_pick">ESCOLHA DIÁRIA</string>
+    <string name="home_daily_streak">Sequência</string>
+    <string name="home_games_played">Jogos Jogados</string>
+    <string name="home_select_game">Escolha um Minijogo</string>
+    <string name="home_brand_tagline">Pense. Jogue. Repita.</string>
+    <string name="home_open_daily_challenge">Desafio diário</string>
+    <string name="home_open_profile">Perfil</string>
+    <string name="home_progress_title">Seu progresso</string>
+    <string name="home_current_streak">Sequência atual</string>
+    <string name="home_best_streak">Melhor sequência</string>
+    <plurals name="home_game_count_format">
+        <item quantity="one">%1$d jogo para explorar</item>
+        <item quantity="many">%1$d jogos para explorar</item>
+        <item quantity="other">%1$d jogos para explorar</item>
+    </plurals>
+    <plurals name="home_days_format">
+        <item quantity="one">%1$d Dia</item>
+        <item quantity="many">%1$d Dias</item>
+        <item quantity="other">%1$d Dias</item>
+    </plurals>
+    <string name="home_streak_summary">%1$s (Recorde: %2$d)</string>
+    <string name="home_completed">Concluído</string>
+    <string name="home_best_score_format">Melhor Pontuação: %1$d</string>
+    <plurals name="home_best_moves_format">
+        <item quantity="one">Melhor: %1$d movimento</item>
+        <item quantity="many">Melhor: %1$d movimentos</item>
+        <item quantity="other">Melhor: %1$d movimentos</item>
+    </plurals>
+    <string name="home_no_score_yet">Sem pontuação</string>
+    <string name="home_solved_format">Resolvidos: %1$d / %2$d</string>
+
+    <!-- Game metadata -->
+    <string name="game_number_merge_title">Fusão Numérica</string>
+    <string name="game_number_merge_subtitle">Deslize e Combine</string>
+    <string name="game_number_merge_description">Deslize peças num tabuleiro 4×4 para combinar números iguais e alcançar pontuações altas!</string>
+    <string name="game_memory_match_title">Jogo da Memória</string>
+    <string name="game_memory_match_subtitle">Encontre os Pares</string>
+    <string name="game_memory_match_description">Vire cartas para testar sua memória e encontrar os 8 pares no menor número de movimentos.</string>
+    <string name="game_quick_math_title">Matemática Rápida</string>
+    <string name="game_quick_math_subtitle">Desafio de 60 Segundos</string>
+    <string name="game_quick_math_description">Resolva questões de matemática antes que o tempo de 60 segundos acabe!</string>
+    <string name="game_word_search_title">Caça-Palavras</string>
+    <string name="game_word_search_subtitle">Encontre Palavras Escondidas</string>
+    <string name="game_word_search_description">Encontre palavras escondidas na horizontal, vertical ou diagonal na grade de letras.</string>
+
+    <!-- Settings Screen -->
+    <string name="settings_title">Configurações</string>
+    <string name="settings_preferences">Preferências</string>
+    <string name="settings_sound_effects">Efeitos Sonoros</string>
+    <string name="settings_sound_desc">Tocar sons durante o jogo</string>
+    <string name="settings_haptics">Vibração Tátil</string>
+    <string name="settings_haptics_desc">Vibrar em ações principais</string>
+    <string name="settings_spread_word">Compartilhar o App</string>
+    <string name="settings_share_app">Compartilhar Puzzivo com Amigos</string>
+    <string name="settings_rate_app">Avaliar na Play Store</string>
+    <string name="settings_about_data">Sobre e Dados</string>
+    <string name="settings_privacy_policy">Política de Privacidade</string>
+    <string name="settings_support">Suporte e Contato</string>
+    <string name="settings_reset_data">Redefinir Progresso</string>
+
+    <!-- Dialogs -->
+    <string name="dialog_leave_title">Sair do Jogo?</string>
+    <string name="dialog_new_best">NOVO RECORDE PESSOAL!</string>
+    <string name="dialog_best_format">Melhor: %1$s</string>
+
+    <!-- Game Themes -->
+    <string name="theme_navy_dark">Azul Marinho Escuro</string>
+    <string name="theme_forest_green">Verde Floresta</string>
+    <string name="theme_ocean_blue">Azul Oceano</string>
+    <string name="theme_sunset_orange">Laranja Pôr do Sol</string>
+    <string name="theme_midnight_purple">Roxo Meia-Noite</string>
+    <string name="theme_rose_gold">Ouro Rosa</string>
+</resources>

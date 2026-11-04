@@ -47,9 +47,10 @@ object AppModule {
     @Singleton
     fun provideAdManager(
         @ApplicationContext context: Context,
-        adsConsentManager: AdsConsentManager
+        adsConsentManager: AdsConsentManager,
+        remoteConfigManager: com.tds.puzzivo.core.config.RemoteConfigManager
     ): AdManager {
-        return AdManager(context) { adsConsentManager.canRequestAds() }
+        return AdManager(context, remoteConfigManager) { adsConsentManager.canRequestAds() }
     }
 
     @Provides
@@ -126,6 +127,7 @@ object AppModule {
             PuzzivoDatabase::class.java,
             "puzzivo_database"
         )
+            .addMigrations(PuzzivoDatabase.MIGRATION_1_2)
         if (BuildConfig.DEBUG) {
             builder.fallbackToDestructiveMigration(dropAllTables = true)
         }
@@ -166,9 +168,10 @@ object AppModule {
     @Provides
     @Singleton
     fun provideStatisticsManager(
+        database: PuzzivoDatabase,
         statisticsDao: com.tds.puzzivo.core.database.StatisticsDao
     ): com.tds.puzzivo.core.manager.StatisticsManager {
-        return com.tds.puzzivo.core.manager.StatisticsManager(statisticsDao)
+        return com.tds.puzzivo.core.manager.StatisticsManager(database, statisticsDao)
     }
 
     @Provides
@@ -212,8 +215,9 @@ object AppModule {
     fun provideAppInitializer(
         authManager: AuthManager,
         achievementManager: com.tds.puzzivo.core.manager.AchievementManager,
-        progressionManager: com.tds.puzzivo.core.manager.ProgressionManager
+        progressionManager: com.tds.puzzivo.core.manager.ProgressionManager,
+        remoteConfigManager: com.tds.puzzivo.core.config.RemoteConfigManager
     ): com.tds.puzzivo.core.init.AppInitializer {
-        return com.tds.puzzivo.core.init.AppInitializer(authManager, achievementManager, progressionManager)
+        return com.tds.puzzivo.core.init.AppInitializer(authManager, achievementManager, progressionManager, remoteConfigManager)
     }
 }

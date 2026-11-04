@@ -22,6 +22,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.Saver
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -47,6 +49,7 @@ import com.tds.puzzivo.core.design.TrackGameStartEffect
 import com.tds.puzzivo.core.design.ResultDialog
 import com.tds.puzzivo.core.design.SecondaryButton
 import com.tds.puzzivo.core.design.TextPrimary
+import com.tds.puzzivo.core.util.intListSaver
 
 private val scrambleWords = listOf("PUZZLE", "MEMORY", "NUMBER", "GALAXY", "CIPHER", "BRIGHT")
 
@@ -65,14 +68,25 @@ private data class ScrambleRound(val word: String, val letters: List<Char>) {
     }
 }
 
+private val scrambleRoundSaver = Saver<ScrambleRound, List<String>>(
+    save = { round -> listOf(round.word, round.letters.joinToString(separator = "")) },
+    restore = { saved ->
+        if (saved.size == 2) ScrambleRound(saved[0], saved[1].toList()) else null
+    }
+)
+
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun WordScrambleScreen(onBackClick: () -> Unit) {
-    var wordIndex by remember { mutableIntStateOf(0) }
-    var round by remember { mutableStateOf(ScrambleRound.create(scrambleWords[0])) }
-    var selectedPositions by remember { mutableStateOf(emptyList<Int>()) }
-    var feedback by remember { mutableStateOf<String?>(null) }
-    var complete by remember { mutableStateOf(false) }
+    var wordIndex by rememberSaveable { mutableIntStateOf(0) }
+    var round by rememberSaveable(stateSaver = scrambleRoundSaver) {
+        mutableStateOf(ScrambleRound.create(scrambleWords[0]))
+    }
+    var selectedPositions by rememberSaveable(stateSaver = intListSaver) {
+        mutableStateOf(emptyList())
+    }
+    var feedback by rememberSaveable { mutableStateOf<String?>(null) }
+    var complete by rememberSaveable { mutableStateOf(false) }
     var showHelp by remember { mutableStateOf(false) }
     val correctText = stringResource(R.string.word_scramble_correct)
     val wrongText = stringResource(R.string.word_scramble_wrong)

@@ -76,6 +76,25 @@ class WordSearchGameEngineTest {
     }
 
     @Test
+    fun `word placed right to left can be selected from its rightmost letter`() {
+        val target = WordSearchRepository.puzzles
+            .asSequence()
+            .flatMap { it.targetWords.asSequence() }
+            .first { it.startRow == it.endRow && it.startCol > it.endCol }
+
+        engine.loadPuzzle(WordSearchRepository.puzzles.indexOfFirst { puzzle ->
+            puzzle.targetWords.any { it.id == target.id }
+        })
+
+        val path = pathFor(target).asReversed()
+        engine.selectStartCell(path.first().row, path.first().col)
+        engine.updateSelection(path.last().row, path.last().col)
+
+        assertTrue("${target.word} should be selectable right-to-left", engine.confirmSelection())
+        assertTrue(engine.state.foundWords.contains(target.word))
+    }
+
+    @Test
     fun `selection must match the target path and cannot use a different line`() {
         val target = firstTarget()
         val path = pathFor(target)

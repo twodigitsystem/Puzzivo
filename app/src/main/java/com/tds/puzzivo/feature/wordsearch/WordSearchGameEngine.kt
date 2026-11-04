@@ -59,7 +59,7 @@ class WordSearchGameEngine {
 
         val matchingWord = puzzle.targetWords.find { tw ->
             !state.foundWords.contains(tw.word) &&
-                    selectionMatchesTarget(selected, tw)
+                    selectionMatchesTarget(puzzle, selected, tw)
         }
 
         if (matchingWord != null) {
@@ -146,45 +146,22 @@ class WordSearchGameEngine {
     }
 
     private fun selectionMatchesTarget(
+        puzzle: WordSearchPuzzle,
         selected: List<CellPosition>,
         target: TargetWord
     ): Boolean {
         if (selected.size != target.word.length) return false
 
-        val expected = pathBetween(
-            startRow = target.startRow,
-            startCol = target.startCol,
-            endRow = target.endRow,
-            endCol = target.endCol
-        ) ?: return false
-
-        return selected == expected || selected == expected.asReversed()
-    }
-
-    private fun pathBetween(
-        startRow: Int,
-        startCol: Int,
-        endRow: Int,
-        endCol: Int
-    ): List<CellPosition>? {
-        val dRow = endRow - startRow
-        val dCol = endCol - startCol
-        val absDRow = abs(dRow)
-        val absDCol = abs(dCol)
-
-        if (dRow != 0 && dCol != 0 && absDRow != absDCol) return null
-
-        val steps = maxOf(absDRow, absDCol)
-        if (steps == 0) return listOf(CellPosition(startRow, startCol))
-
-        val stepRow = dRow.sign()
-        val stepCol = dCol.sign()
-        return List(steps + 1) { offset ->
-            CellPosition(
-                row = startRow + offset * stepRow,
-                col = startCol + offset * stepCol
-            )
+        // Match the letters the player actually selected. This is important for
+        // words placed from right to left: the board must be read in the same
+        // direction as the user's drag, not inferred only from metadata.
+        val selectedWord = selected.joinToString(separator = "") { cell ->
+            puzzle.grid[cell.row][cell.col].toString()
         }
+        val targetWord = target.word.uppercase()
+
+        return selectedWord.equals(targetWord, ignoreCase = true) ||
+                selectedWord.reversed().equals(targetWord, ignoreCase = true)
     }
 
     private fun Int.sign(): Int = when {

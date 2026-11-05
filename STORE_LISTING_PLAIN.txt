@@ -1,15 +1,15 @@
 SHORT DESCRIPTION (80 characters max):
-11 classic mini-games in 1 app! Merge, match cards, solve math, word & logic.
+12 classic mini-games in 1 app! Merge, match, solve math, word & logic puzzles.
 
 LONG DESCRIPTION:
 
 Puzzivo — Think. Play. Repeat.
 
-Welcome to Puzzivo, the ultimate all-in-one brain training puzzle collection! Puzzivo brings 11 popular puzzle and logic mini-game genres into one clean, beautifully designed experience.
+Welcome to Puzzivo, the ultimate all-in-one brain training puzzle collection! Puzzivo brings 12 popular puzzle and logic mini-game genres into one clean, beautifully designed experience.
 
-Whether you love numbers, card memory challenges, rapid math calculations, hidden word searches, or classic logic grids, Puzzivo has something for every puzzle enthusiast — 100% playable offline with no internet required!
+Whether you love numbers, card memory challenges, rapid math calculations, word guessing, hidden word searches, or classic logic grids, Puzzivo has something for every puzzle enthusiast — 100% playable offline with no internet required!
 
-11 FUN MINI-GAMES IN ONE APP
+12 FUN MINI-GAMES IN ONE APP
 
 1. Number Merge (4x4 Slide & Combine)
 Slide matching number tiles across a 4x4 grid. Combine 2s, 4s, 8s, 16s, and beyond to chase your highest score. Use the single-step Undo feature to rethink your strategy!
@@ -21,37 +21,46 @@ Test and sharpen your short-term memory! Flip hidden cards on a 4x4 grid to find
 Put your calculation speed to the test! Solve addition, subtraction, multiplication, and division problems before the 60-second timer hits zero.
 
 4. Word Search (Hidden Letter Grids)
-Search for hidden words inside themed letter grids! Connect letters horizontally, vertically, or diagonally across 20 unique offline puzzle packs.
+Search for hidden words inside themed letter grids! Connect letters horizontally, vertically, or diagonally across offline puzzle packs.
 
-5. Sudoku (Classic 9x9 Logic Grids)
-Fill 9x9 grids with numbers 1 to 9 without repeating any digit in rows, columns, or 3x3 boxes. Test your logical reasoning!
+5. Word Guess (5-Letter Hidden Word Challenge)
+Guess the secret 5-letter word in 6 attempts or less! Color-coded tiles guide your guesses (Green = correct spot, Yellow = wrong spot).
 
-6. Minesweeper (Classic Minefield Grid)
+6. Mini Sudoku (Logic Grid Challenge)
+Fill 6x6 grids with numbers 1 to 6 without repeating any digit in rows, columns, or 2x3 boxes. Test your logical reasoning!
+
+7. Minesweeper (Classic Minefield Grid)
 Uncover safe tiles without detonating hidden mines! Use numerical hints to deduce safe paths across the minefield.
 
-7. Nonogram (Picture Cross Logic)
+8. Nonogram (Picture Cross Logic)
 Use row and column number clues to fill in grid cells and reveal hidden pixel art shapes in this popular Japanese logic puzzle.
 
-8. Hex Merge (Hexagonal Board Combine)
+9. Hex Merge (Hexagonal Board Combine)
 A fresh hexagonal twist on number merging! Connect matching numbers across a 6-sided grid to unlock higher values and maximize your score.
 
-9. Lights Out (Grid Light Toggle)
+10. Lights Out (Grid Light Toggle)
 Tap grid cells to toggle surrounding lights on and off. Can you turn off all the lights in the fewest moves?
 
-10. Pattern Recall (Sequence Memory Test)
+11. Pattern Recall (Sequence Memory Test)
 Watch the light sequence flash across the grid and repeat the pattern in exact order. How long a sequence can you memorize?
 
-11. Word Scramble (Anagram Puzzle)
+12. Word Scramble (Anagram Puzzle)
 Unscramble jumbled letters to discover hidden target words. Expand your vocabulary with endless word challenges!
+
+DAILY REWARDS & REWARD CHEST
+
+- Daily Reward Chest: Log in daily to open the Daily Chest and claim escalating Coin and Gem bonuses across a 7-day streak!
+- Lucky Spin Wheel: Spin the wheel once every day for a chance to win instant Coins, Gems, or the Jackpot bonus!
+- Daily Pick & Streak Tracker: Check in every day for Today's Pick — a fresh daily game recommendation to complete and keep your daily streak alive!
+- In-App Shop & Themes: Use your earned Coins and Gems to unlock 6 dark-mode color themes and booster hint packs!
 
 WHY YOU'LL LOVE PUZZIVO
 
-- Play Anywhere, Anytime (Offline-First): No internet or Wi-Fi needed! All 11 games run 100% locally on your device.
-- Instant Play (No Account Needed): Zero sign-ups, zero login walls. Open the app and jump straight into your favorite game.
-- Daily Pick & Streak Tracker: Check in every day for Today's Pick — a fresh daily game recommendation to complete and keep your daily streak alive!
+- Play Anywhere, Anytime (Offline-First): No internet or Wi-Fi needed! All 12 games run 100% locally on your device.
+- Global Leaderboards: Optionally sign in with Google to publish your high scores to global and friends leaderboards!
 - Fair & Respectful Ads: Enjoy uninterrupted core gameplay. Watch optional rewarded videos only when you choose to unlock helpful hints or extra moves.
 - Clean & Modern Navy Design: A sleek Material 3 dark navy interface with bright puzzle accents designed for comfortable play during day or night.
-- Lightweight & Fast: Optimized to run smoothly on any Android phone without draining battery or storage.
+- Lightweight & Fast: Jetpack Baseline Profile optimized to run smoothly on any Android phone with zero lag.
 
 PLAY A QUICK PUZZLE DAILY
 

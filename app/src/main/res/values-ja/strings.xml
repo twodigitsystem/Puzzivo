@@ -61,13 +61,19 @@
     <string name="game_word_guess_subtitle">5文字の単語を当てよう</string>
     <string name="game_word_guess_description">6回以内に隠された単語を当てよう！緑は正しい位置を示します。</string>
 
+    <!-- Rules -->
+    <string name="number_merge_rules_title">ルール</string>
+    <string name="number_merge_rules_description">🎯 目標: 同じ数字を組み合わせてハイスコアを目指します。\n🎮 操作: 上下左右にスライドしてタイルを移動します。\n🏆 ルール: 重なった同じ数字のタイルが合体して2倍になります！</string>
+    <string name="memory_match_rules_title">神経衰弱のルール</string>
+    <string name="memory_match_rules_description">🎯 目標: 8つのペアをすべて見つけます。\n🎮 操作: カードをタップしてめくり、ペアを探します。\n🏆 ルール: 最小手数と時間でクリアを目指しましょう！</string>
+
     <!-- Settings Screen -->
     <string name="settings_title">設定</string>
     <string name="settings_preferences">環境設定</string>
     <string name="settings_sound_effects">効果音</string>
     <string name="settings_sound_desc">ゲームプレイ中の音を再生</string>
     <string name="settings_haptics">触感フィードバック</string>
-    <string name="settings_haptics_desc">操作時に振動させる</string>
+    <string name="settings_haptics_desc">Vibration bei wichtigen Aktionen</string>
     <string name="settings_spread_word">アプリを共有</string>
     <string name="settings_share_app">友達にPuzzivoを教える</string>
     <string name="settings_rate_app">Playストアで評価</string>

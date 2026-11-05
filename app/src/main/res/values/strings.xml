@@ -141,7 +141,7 @@
     <string name="number_merge_new_game_title">Start a New Game?</string>
     <string name="number_merge_new_game_message">Your current board and score will be discarded.</string>
     <string name="number_merge_rules_title">Number Merge Rules</string>
-    <string name="number_merge_rules_description">Swipe up, down, left, or right to slide tiles. When two equal numbers touch during a swipe, they merge into one with double the value. Your score increases with each merge.</string>
+    <string name="number_merge_rules_description">🎯 OBJECTIVE: Combine matching tiles to reach your highest score.\n🎮 CONTROLS: Swipe Up, Down, Left, or Right to slide all tiles across the 4×4 grid.\n🏆 MERGE RULE: Two touching tiles with equal numbers merge into double value!</string>
     <string name="number_merge_game_over">Game Over!</string>
     <plurals name="number_merge_score_format">
         <item quantity="one">%1$d point</item>
@@ -162,7 +162,7 @@
     <string name="memory_match_restart_title">Restart Game?</string>
     <string name="memory_match_restart_message">Your current card-match run will be discarded.</string>
     <string name="memory_match_rules_title">Memory Match Rules</string>
-    <string name="memory_match_rules_description">Tap a card to flip it over, then tap a second card. Matching cards stay face-up. Find all 8 pairs in as few moves and seconds as possible.</string>
+    <string name="memory_match_rules_description">🎯 OBJECTIVE: Find all 8 matching pairs on the grid.\n🎮 CONTROLS: Tap a card to flip it over, then tap a second card to test for a match.\n🏆 WIN CONDITION: Match all card pairs in as few moves and seconds as possible!</string>
     <string name="memory_match_complete">Puzzle Solved!</string>
     <string name="memory_match_score_format">%1$s in %2$s</string>
     <plurals name="memory_match_moves_format">

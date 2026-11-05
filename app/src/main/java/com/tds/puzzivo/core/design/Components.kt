@@ -126,9 +126,10 @@ fun PuzzivoCard(
     content: @Composable () -> Unit
 ) {
     Card(
-        shape = RoundedCornerShape(16.dp),
+        shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(containerColor = backgroundColor),
-        border = BorderStroke(1.dp, borderColor),
+        border = BorderStroke(1.5.dp, borderColor),
+        elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
         modifier = modifier.then(
             if (onClick != null) Modifier.clickable(role = Role.Button) { onClick() } else Modifier
         )
@@ -149,7 +150,8 @@ fun PrimaryButton(
     Button(
         onClick = onClick,
         enabled = enabled,
-        shape = RoundedCornerShape(12.dp),
+        shape = RoundedCornerShape(14.dp),
+        elevation = ButtonDefaults.buttonElevation(defaultElevation = 8.dp, pressedElevation = 2.dp),
         colors = ButtonDefaults.buttonColors(
             containerColor = containerColor,
             contentColor = contentColor,
@@ -158,12 +160,13 @@ fun PrimaryButton(
         ),
         modifier = modifier
             .fillMaxWidth()
-            .height(52.dp)
+            .height(54.dp)
     ) {
         Text(
             text = text,
             fontSize = 16.sp,
-            fontWeight = FontWeight.Bold
+            fontWeight = FontWeight.Black,
+            letterSpacing = 0.5.sp
         )
     }
 }
@@ -201,33 +204,56 @@ fun InstructionDialog(
     description: String,
     onDismiss: () -> Unit
 ) {
+    val steps = remember(description) {
+        description.split("\n").map { it.trim() }.filter { it.isNotEmpty() }
+    }
+
     Dialog(onDismissRequest = onDismiss) {
         PuzzivoCard(
-            modifier = Modifier.padding(16.dp)
+            backgroundColor = NavySurface,
+            borderColor = AccentYellow,
+            modifier = Modifier.padding(12.dp)
         ) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(24.dp),
+                    .padding(20.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
-                    text = title,
-                    style = MaterialTheme.typography.headlineMedium,
+                    text = title.uppercase(),
+                    style = MaterialTheme.typography.titleLarge,
                     color = AccentYellow,
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Black,
+                    letterSpacing = 1.sp
                 )
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                Text(
-                    text = description,
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = TextSecondary,
-                    textAlign = TextAlign.Center
-                )
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(10.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    steps.forEach { step ->
+                        Surface(
+                            color = NavySurfaceVariant,
+                            shape = RoundedCornerShape(12.dp),
+                            border = BorderStroke(1.dp, CardBorderColor),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text(
+                                text = step,
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = TextPrimary,
+                                fontWeight = FontWeight.SemiBold,
+                                modifier = Modifier.padding(12.dp),
+                                textAlign = TextAlign.Start
+                            )
+                        }
+                    }
+                }
 
-                Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(20.dp))
 
                 PrimaryButton(
                     text = stringResource(R.string.action_got_it),

@@ -247,10 +247,10 @@ fun HomeScreen(
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                // Daily Rewards Quick Actions (Daily Chest & Lucky Wheel)
+                // Daily Rewards Quick Actions (Daily Chest, Lucky Wheel & Quick Play Shuffle)
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     PuzzivoCard(
                         backgroundColor = NavySurface,
@@ -259,14 +259,14 @@ fun HomeScreen(
                         modifier = Modifier.weight(1f)
                     ) {
                         Row(
-                            modifier = Modifier.padding(12.dp),
+                            modifier = Modifier.padding(10.dp),
                             verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            horizontalArrangement = Arrangement.spacedBy(6.dp)
                         ) {
-                            Text("🎁", fontSize = 20.sp)
+                            Text("🎁", fontSize = 18.sp)
                             Column {
-                                Text("Daily Chest", fontWeight = FontWeight.Bold, color = TextPrimary, fontSize = 13.sp)
-                                Text("Claim Bonus", color = AccentYellow, fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
+                                Text("Chest", fontWeight = FontWeight.Bold, color = TextPrimary, fontSize = 12.sp)
+                                Text("Bonus", color = AccentYellow, fontSize = 10.sp, fontWeight = FontWeight.SemiBold)
                             }
                         }
                     }
@@ -278,14 +278,36 @@ fun HomeScreen(
                         modifier = Modifier.weight(1f)
                     ) {
                         Row(
-                            modifier = Modifier.padding(12.dp),
+                            modifier = Modifier.padding(10.dp),
                             verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            horizontalArrangement = Arrangement.spacedBy(6.dp)
                         ) {
-                            Text("🎡", fontSize = 20.sp)
+                            Text("🎡", fontSize = 18.sp)
                             Column {
-                                Text("Lucky Wheel", fontWeight = FontWeight.Bold, color = TextPrimary, fontSize = 13.sp)
-                                Text("Spin & Win", color = AccentCyan, fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
+                                Text("Wheel", fontWeight = FontWeight.Bold, color = TextPrimary, fontSize = 12.sp)
+                                Text("Spin", color = AccentCyan, fontSize = 10.sp, fontWeight = FontWeight.SemiBold)
+                            }
+                        }
+                    }
+
+                    PuzzivoCard(
+                        backgroundColor = NavySurface,
+                        borderColor = AccentGreen,
+                        onClick = {
+                            val randomGame = GameType.entries.random()
+                            onNavigateToGame(randomGame)
+                        },
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(10.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            Text("⚡", fontSize = 18.sp)
+                            Column {
+                                Text("Shuffle", fontWeight = FontWeight.Bold, color = TextPrimary, fontSize = 12.sp)
+                                Text("Random", color = AccentGreen, fontSize = 10.sp, fontWeight = FontWeight.SemiBold)
                             }
                         }
                     }

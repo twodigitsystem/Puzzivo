@@ -67,6 +67,12 @@
     <string name="game_word_guess_subtitle">Mot de 5 Lettres</string>
     <string name="game_word_guess_description">Devinez le mot caché en 6 essais ! Le vert indique la bonne position.</string>
 
+    <!-- Rules -->
+    <string name="number_merge_rules_title">Règles</string>
+    <string name="number_merge_rules_description">🎯 OBJECTIF : Combinez des tuiles égales pour marquer des points.\n🎮 CONTRÔLES : Glissez vers le Haut, Bas, Gauche ou Droite.\n🏆 RÈGLE : Deux tuiles de même valeur fusionnent en doublant leur score !</string>
+    <string name="memory_match_rules_title">Règles de Mémoire</string>
+    <string name="memory_match_rules_description">🎯 OBJECTIF : Trouvez les 8 paires de cartes.\n🎮 CONTRÔLES : Touchez une carte pour la retourner.\n🏆 RÈGLE : Terminez en un minimum de coups et de temps !</string>
+
     <!-- Settings Screen -->
     <string name="settings_title">Paramètres</string>
     <string name="settings_preferences">Préférences</string>

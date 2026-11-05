@@ -23,7 +23,8 @@ service cloud.firestore {
         'word_scramble',
         'lights_out',
         'nonogram',
-        'hex_merge'
+        'hex_merge',
+        'word_guess'
       ];
     }
 

@@ -248,7 +248,7 @@ class PreferencesRepository(
 
         context.dataStore.edit { prefs ->
             val lastClaim = prefs[Keys.LAST_LOGIN_BONUS_CLAIM_DATE] ?: ""
-            if (lastClaim == today) return@edit
+            if (lastClaim.isNotEmpty() && lastClaim >= today) return@edit
 
             var currentDay = prefs[Keys.LOGIN_BONUS_DAY] ?: 1
             if (lastClaim != yesterday && lastClaim.isNotEmpty()) {
@@ -277,6 +277,9 @@ class PreferencesRepository(
     suspend fun recordSpinWheelClaim() {
         val today = LocalDate.now(clock).toString()
         context.dataStore.edit { prefs ->
+            val lastClaim = prefs[Keys.LAST_SPIN_WHEEL_CLAIM_DATE] ?: ""
+            if (lastClaim.isNotEmpty() && lastClaim >= today) return@edit
+
             prefs[Keys.LAST_SPIN_WHEEL_CLAIM_DATE] = today
         }
     }

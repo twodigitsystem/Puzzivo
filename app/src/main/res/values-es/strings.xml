@@ -67,6 +67,12 @@
     <string name="game_word_guess_subtitle">Palabra de 5 Letras</string>
     <string name="game_word_guess_description">¡Adivina la palabra oculta en 6 intentos! El verde indica la posición correcta.</string>
 
+    <!-- Rules -->
+    <string name="number_merge_rules_title">Reglas de Fusión Numérica</string>
+    <string name="number_merge_rules_description">🎯 OBJETIVO: Combina fichas iguales para alcanzar la puntuación más alta.\n🎮 CONTROLES: Desliza hacia Arriba, Abajo, Izquierda o Derecha en el tablero de 4×4.\n🏆 REGLA: ¡Dos fichas con el mismo número se fusionan duplicando su valor!</string>
+    <string name="memory_match_rules_title">Reglas de Memoria</string>
+    <string name="memory_match_rules_description">🎯 OBJETIVO: Encuentra las 8 parejas en el tablero.\n🎮 CONTROLES: Toca una carta para voltearla y luego otra para encontrar el par.\n🏆 CONDICIÓN: ¡Encuentra todas las parejas en el menor tiempo y movimientos posibles!</string>
+
     <!-- Settings Screen -->
     <string name="settings_title">Ajustes</string>
     <string name="settings_preferences">Preferencias</string>

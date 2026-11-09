@@ -48,7 +48,7 @@ class LeaderboardViewModel @Inject constructor(
                     leaderboardManager.getFriendsLeaderboard(
                         gameType = gameType,
                         difficulty = com.tds.puzzivo.core.model.DifficultyLevel.MEDIUM,
-                        friendIds = emptyList()
+                        friendIds = listOfNotNull(authManager.getUserId())
                     ).collect { entries ->
                         _leaderboardEntries.value = entries
                         _isLoading.value = false

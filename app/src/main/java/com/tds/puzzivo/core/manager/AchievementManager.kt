@@ -4,7 +4,6 @@ import com.tds.puzzivo.core.database.AchievementDao
 import com.tds.puzzivo.core.database.ProgressDao
 import com.tds.puzzivo.core.model.Achievement
 import com.tds.puzzivo.core.model.GameType
-import com.tds.puzzivo.core.model.PlayerProgress
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import java.time.LocalDate
@@ -14,7 +13,8 @@ import javax.inject.Singleton
 @Singleton
 class AchievementManager @Inject constructor(
     private val achievementDao: AchievementDao,
-    private val progressDao: ProgressDao
+    private val progressDao: ProgressDao,
+    private val progressionManager: ProgressionManager
 ) {
 
     val allAchievements: Flow<List<Achievement>> = achievementDao.getAllAchievements()
@@ -123,21 +123,7 @@ class AchievementManager @Inject constructor(
             progressDao.addCoins(achievement.coinReward)
         }
         if (achievement.xpReward > 0) {
-            val current = progressDao.getProgress().first() ?: PlayerProgress()
-            val totalXPEarned = current.totalXPEarned + achievement.xpReward
-            var newXP = current.currentXP + achievement.xpReward
-            var newLevel = current.level
-            while (newXP >= PlayerProgress.calculateXPForLevel(newLevel + 1)) {
-                val xpNeeded = PlayerProgress.calculateXPForLevel(newLevel + 1)
-                newXP -= xpNeeded
-                newLevel++
-            }
-            val updated = current.copy(
-                level = newLevel,
-                currentXP = newXP,
-                totalXPEarned = totalXPEarned
-            )
-            progressDao.updateProgress(updated)
+            progressionManager.addXP(achievement.xpReward)
         }
     }
 
@@ -148,10 +134,6 @@ class AchievementManager @Inject constructor(
         if (achievement != null && !achievement.unlocked && progress >= achievement.requirement) {
             unlockAchievement(achievement)
         }
-    }
-
-    suspend fun updateAchievementProgress(achievementId: String, progress: Int) {
-        updateProgress(achievementId, progress)
     }
 
     suspend fun initializeDefaultAchievements() {

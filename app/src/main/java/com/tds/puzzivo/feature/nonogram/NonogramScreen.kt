@@ -60,6 +60,23 @@ private val nonogramPatterns = listOf(
     listOf(0, 0, 1, 0, 0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 0, 1, 1, 1, 0, 0, 0, 1)
 )
 
+/** Converts a 0/1 row/column pattern into space-separated block-count strings (e.g. [0,1,1,0,1] -> "2 1"). */
+private fun parseClues(pattern: List<Int>): String {
+    val asString = pattern.joinToString("") { it.toString() }
+    val blocks = asString.split('0').filter { it.isNotBlank() }
+    return blocks.map { it.length.toString() }.joinToString(" ")
+}
+
+/** Returns the row clues and column clues for a given pattern index. */
+private fun computeClues(patternIndex: Int): Pair<List<String>, List<String>> {
+    val pattern = nonogramPatterns[patternIndex]
+    val rowClues = pattern.chunked(SIZE).map { parseClues(it) }
+    val columnClues = (0 until SIZE).map { col ->
+        parseClues((0 until SIZE).map { row -> pattern[row * SIZE + col] })
+    }
+    return rowClues to columnClues
+}
+
 @Composable
 fun NonogramScreen(onBackClick: () -> Unit) {
     var patternIndex by rememberSaveable { mutableIntStateOf(0) }
@@ -82,6 +99,10 @@ fun NonogramScreen(onBackClick: () -> Unit) {
         complete = false
     }
 
+    fun patternDescription(): String {
+        return "Pattern ${patternIndex + 1} of ${nonogramPatterns.size}. Fill rows matching the side clues and columns matching the top clues."
+    }
+
     fun tap(index: Int) {
         if (complete) return
         if (markMode) {
@@ -102,8 +123,7 @@ fun NonogramScreen(onBackClick: () -> Unit) {
         moves = filled.count { it }
     )
 
-    val rowClues = listOf("1 1", "5", "3", "5", "1 1")
-    val columnClues = listOf("1 1", "5", "3", "5", "1 1")
+    val (rowClues, columnClues) = computeClues(patternIndex)
 
     Surface(color = NavyBackground, modifier = Modifier.fillMaxSize()) {
         Column(modifier = Modifier.fillMaxSize()) {
@@ -114,7 +134,7 @@ fun NonogramScreen(onBackClick: () -> Unit) {
                 actionContentDescription = stringResource(R.string.action_help)
             )
             Column(modifier = Modifier.fillMaxSize().padding(16.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                Text(stringResource(R.string.nonogram_rules), color = TextSecondary, style = MaterialTheme.typography.bodySmall)
+                Text(patternDescription(), color = TextSecondary, style = MaterialTheme.typography.bodySmall)
                 Spacer(modifier = Modifier.height(12.dp))
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
                     Spacer(modifier = Modifier.width(54.dp))
@@ -127,7 +147,7 @@ fun NonogramScreen(onBackClick: () -> Unit) {
                     Column(modifier = Modifier.fillMaxSize().padding(8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                         repeat(SIZE) { row ->
                             Row(modifier = Modifier.fillMaxWidth().weight(1f), horizontalArrangement = Arrangement.spacedBy(4.dp), verticalAlignment = Alignment.CenterVertically) {
-                                Text(rowClues[row], color = AccentCyan, fontWeight = FontWeight.Bold, modifier = Modifier.width(46.dp), textAlign = androidx.compose.ui.text.style.TextAlign.End)
+                                Text(rowClues[row], color = AccentCyan, fontWeight = FontWeight.Bold, modifier = Modifier.width(50.dp), textAlign = androidx.compose.ui.text.style.TextAlign.End)
                                 repeat(SIZE) { col ->
                                     val index = row * SIZE + col
                                     Surface(

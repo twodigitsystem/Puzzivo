@@ -3,9 +3,8 @@ package com.tds.puzzivo.core.init
 import com.tds.puzzivo.core.auth.AuthManager
 import com.tds.puzzivo.core.manager.AchievementManager
 import com.tds.puzzivo.core.manager.ProgressionManager
+import com.tds.puzzivo.di.ApplicationScope
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -18,11 +17,10 @@ class AppInitializer @Inject constructor(
     private val authManager: AuthManager,
     private val achievementManager: AchievementManager,
     private val progressionManager: ProgressionManager,
-    private val remoteConfigManager: com.tds.puzzivo.core.config.RemoteConfigManager
+    private val remoteConfigManager: com.tds.puzzivo.core.config.RemoteConfigManager,
+    @ApplicationScope private val scope: CoroutineScope
 ) {
-    
-    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
-    
+
     fun initialize() {
         scope.launch {
             // Fetch and activate remote config parameters

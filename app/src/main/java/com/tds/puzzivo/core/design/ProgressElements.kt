@@ -106,7 +106,7 @@ fun XPProgressBar(
  * Circular progress indicator for challenges
  */
 @Composable
-fun CircularProgressIndicator(
+fun PuzzivoCircularProgressIndicator(
     progress: Float,
     size: androidx.compose.ui.unit.Dp = 120.dp,
     strokeWidth: androidx.compose.ui.unit.Dp = 12.dp,

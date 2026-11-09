@@ -1,7 +1,7 @@
 package com.tds.puzzivo.feature.profile
 
 import androidx.compose.animation.core.FastOutSlowInEasing
-import androidx.compose.animation.core.animate
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -372,18 +372,12 @@ private fun ProgressionBannerCard(
     currentXP: Int,
     xpForNextLevel: Int
 ) {
-    var animatedProgress by remember { mutableFloatStateOf(0f) }
     val targetProgress = (currentXP.toFloat() / xpForNextLevel.coerceAtLeast(1)).coerceIn(0f, 1f)
-
-    LaunchedEffect(targetProgress) {
-        animate(
-            initialValue = animatedProgress,
-            targetValue = targetProgress,
-            animationSpec = tween(durationMillis = 600, easing = FastOutSlowInEasing)
-        ) { value, _ ->
-            animatedProgress = value
-        }
-    }
+    val animatedProgress by animateFloatAsState(
+        targetValue = targetProgress,
+        animationSpec = tween(durationMillis = 600, easing = FastOutSlowInEasing),
+        label = "ProfileProgressAnimation"
+    )
 
     val levelTitle = when {
         currentLevel <= 1 -> "Novice Solver"

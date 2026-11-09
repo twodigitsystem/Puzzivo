@@ -8,7 +8,8 @@ data class BoardSnapshot(
     val grid: List<Int>,
     val score: Int,
     val isGameOver: Boolean,
-    val hasReached2048: Boolean
+    val hasReached2048: Boolean,
+    val moveCount: Int
 )
 
 data class NumberMergeState(
@@ -66,7 +67,8 @@ class NumberMergeGameEngine(
             grid = state.grid,
             score = state.score,
             isGameOver = state.isGameOver,
-            hasReached2048 = state.hasReached2048
+            hasReached2048 = state.hasReached2048,
+            moveCount = state.moveCount
         )
 
         // Spawn new tile in empty spot
@@ -76,6 +78,7 @@ class NumberMergeGameEngine(
         val newBestScore = maxOf(newScore, state.bestScore)
         val reached2048Now = state.hasReached2048 || newGrid.contains(2048)
         val gameOver = isBoardGameOver(newGrid)
+        val isNewRecord = if (state.bestScore == 0) newScore > 0 else newScore > state.bestScore
 
         state = state.copy(
             grid = newGrid.toList(),
@@ -85,7 +88,7 @@ class NumberMergeGameEngine(
             hasReached2048 = reached2048Now,
             canUndo = true,
             moveCount = state.moveCount + 1,
-            isNewBest = state.isNewBest || (state.bestScore > 0 && newScore > state.bestScore)
+            isNewBest = state.isNewBest || isNewRecord
         )
 
         return true
@@ -98,6 +101,7 @@ class NumberMergeGameEngine(
             score = snapshot.score,
             isGameOver = snapshot.isGameOver,
             hasReached2048 = state.hasReached2048 || snapshot.hasReached2048,
+            moveCount = snapshot.moveCount,
             canUndo = false
         )
         previousSnapshot = null

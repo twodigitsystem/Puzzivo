@@ -10,6 +10,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
@@ -83,20 +84,18 @@ fun AchievementUnlockedDialog(
     achievement: Achievement,
     onDismiss: () -> Unit
 ) {
-    var scale by remember { mutableFloatStateOf(0f) }
-    
+    var animateTrigger by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) {
-        animate(
-            initialValue = 0f,
-            targetValue = 1f,
-            animationSpec = spring(
-                dampingRatio = Spring.DampingRatioMediumBouncy,
-                stiffness = Spring.StiffnessLow
-            )
-        ) { value, _ ->
-            scale = value
-        }
+        animateTrigger = true
     }
+    val scale by animateFloatAsState(
+        targetValue = if (animateTrigger) 1f else 0f,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessLow
+        ),
+        label = "AchievementScaleAnimation"
+    )
 
     Dialog(onDismissRequest = onDismiss) {
         Surface(
@@ -196,17 +195,15 @@ fun LevelUpDialog(
     newLevel: Int,
     onDismiss: () -> Unit
 ) {
-    var rotation by remember { mutableFloatStateOf(0f) }
-    
+    var animateTrigger by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) {
-        animate(
-            initialValue = 0f,
-            targetValue = 360f,
-            animationSpec = tween(durationMillis = 1000, easing = FastOutSlowInEasing)
-        ) { value, _ ->
-            rotation = value
-        }
+        animateTrigger = true
     }
+    val rotation by animateFloatAsState(
+        targetValue = if (animateTrigger) 360f else 0f,
+        animationSpec = tween(durationMillis = 1000, easing = FastOutSlowInEasing),
+        label = "LevelUpRotationAnimation"
+    )
 
     Dialog(onDismissRequest = onDismiss) {
         Surface(
@@ -222,7 +219,8 @@ fun LevelUpDialog(
             ) {
                 Text(
                     text = "🎉",
-                    style = MaterialTheme.typography.displayLarge
+                    style = MaterialTheme.typography.displayLarge,
+                    modifier = Modifier.rotate(rotation)
                 )
 
                 Spacer(modifier = Modifier.height(16.dp))

@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.GenericShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -72,6 +73,18 @@ private data class HexBoard(val values: Map<HexCoord, Int>, val score: Int, val 
             return spawn(board)
         }
     }
+}
+
+private val HexagonShape = GenericShape { size, _ ->
+    val w = size.width
+    val h = size.height
+    moveTo(w * 0.25f, 0f)
+    lineTo(w * 0.75f, 0f)
+    lineTo(w, h * 0.5f)
+    lineTo(w * 0.75f, h)
+    lineTo(w * 0.25f, h)
+    lineTo(0f, h * 0.5f)
+    close()
 }
 
 private val hexBoardSaver = Saver<HexBoard, String>(
@@ -139,10 +152,10 @@ fun HexMergeScreen(onBackClick: () -> Unit) {
                 Text(stringResource(R.string.hex_merge_score, board.score), color = AccentYellow, fontWeight = FontWeight.Bold)
                 Spacer(modifier = Modifier.height(12.dp))
                 PuzzivoCard(backgroundColor = NavySurfaceVariant, borderColor = CardBorderColor, modifier = Modifier.fillMaxWidth()) {
-                    Column(modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Column(modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy((-6).dp)) {
                         for (r in -2..2) {
                             val row = hexCoords.filter { it.r == r }
-                            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                            Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                                 row.forEach { coord ->
                                     HexCell(value = board.values[coord] ?: 0)
                                 }
@@ -184,9 +197,9 @@ private fun HexCell(value: Int) {
     val color = if (value == 0) NavySurface else AccentGreen.copy(alpha = 0.2f)
     Surface(
         color = color,
-        shape = RoundedCornerShape(14.dp),
+        shape = HexagonShape,
         border = BorderStroke(1.dp, if (value == 0) CardBorderColor else AccentGreen),
-        modifier = Modifier.size(52.dp).semantics {
+        modifier = Modifier.size(50.dp).semantics {
             contentDescription = if (value == 0) "Empty hex cell" else "Hex tile $value"
         }
     ) {

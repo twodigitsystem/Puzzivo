@@ -27,7 +27,7 @@ class StatisticsViewModel @Inject constructor(
                 totalWins = statsList.sumOf { it.totalWins },
                 totalPlayTime = statsList.sumOf { it.totalTimePlayedSeconds },
                 totalScore = statsList.sumOf { it.highestScore.toLong() },
-                currentStreak = statsList.maxOfOrNull { it.currentWinStreak } ?: 0,
+                currentStreak = statsList.sumOf { it.currentWinStreak },
                 bestStreak = statsList.maxOfOrNull { it.longestWinStreak } ?: 0
             )
         }

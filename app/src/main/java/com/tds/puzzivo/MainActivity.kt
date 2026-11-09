@@ -18,7 +18,10 @@ import com.tds.puzzivo.core.design.PuzzivoTheme
 import com.tds.puzzivo.core.init.AppInitializer
 import com.tds.puzzivo.core.manager.ThemeManager
 import com.tds.puzzivo.core.model.GameTheme
+import com.tds.puzzivo.core.network.NetworkManager
 import com.tds.puzzivo.core.util.AppUtilities
+import com.tds.puzzivo.core.game.OfflineMonitor
+import androidx.compose.foundation.layout.Box
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
@@ -30,6 +33,9 @@ class MainActivity : ComponentActivity() {
 
     @Inject
     lateinit var themeManager: ThemeManager
+
+    @Inject
+    lateinit var networkManager: NetworkManager
 
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
@@ -49,9 +55,13 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             val selectedTheme by themeManager.selectedTheme.collectAsState(initial = GameTheme.NAVY_DARK)
+            val isOnline by networkManager.isOnline.collectAsState(initial = true)
             PuzzivoTheme(gameTheme = selectedTheme) {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    AppNavHost(modifier = Modifier.padding(innerPadding))
+                Box(modifier = Modifier.fillMaxSize()) {
+                    Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
+                        AppNavHost(modifier = Modifier.padding(innerPadding))
+                    }
+                    OfflineMonitor(isOnline = isOnline)
                 }
             }
         }

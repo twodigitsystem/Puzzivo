@@ -119,49 +119,32 @@ abstract class BaseGameViewModel(
     ) {
         val stats = statisticsManager.getStatistics(gameType).first() ?: return
 
-        // First win
         if (stats.totalWins == 1) {
             unlockAchievement("first_win_${gameType.name.lowercase()}")
         }
-
-        // 10 wins
         if (stats.totalWins == 10) {
             unlockAchievement("10_wins_${gameType.name.lowercase()}")
         }
-
-        // 50 wins
         if (stats.totalWins == 50) {
             unlockAchievement("50_wins_${gameType.name.lowercase()}")
         }
-
-        // 100 wins
         if (stats.totalWins == 100) {
             unlockAchievement("100_wins_${gameType.name.lowercase()}")
         }
-
-        // Perfect game (no hints, high score)
         if (hintsUsed == 0 && score > 1000) {
             unlockAchievement("perfect_${gameType.name.lowercase()}")
         }
-
-        // Speed demon (very fast completion)
         if (durationSeconds < 60 && won) {
             unlockAchievement("speed_demon_${gameType.name.lowercase()}")
         }
-
-        // Win streak
         if (stats.currentWinStreak == 5) {
             unlockAchievement("win_streak_5")
         }
         if (stats.currentWinStreak == 10) {
             unlockAchievement("win_streak_10")
         }
-
-        // Expert difficulty wins
-        if (difficulty == DifficultyLevel.EXPERT && won) {
-            if (stats.totalWins >= 10) {
-                unlockAchievement("expert_master_${gameType.name.lowercase()}")
-            }
+        if (difficulty == DifficultyLevel.EXPERT && won && stats.totalWins >= 10) {
+            unlockAchievement("expert_master_${gameType.name.lowercase()}")
         }
     }
 
@@ -172,11 +155,8 @@ abstract class BaseGameViewModel(
         }
     }
 
-    /**
-     * Track progress for incremental achievements
-     */
     protected suspend fun trackAchievementProgress(achievementId: String, progress: Int = 1) {
-        achievementManager.updateAchievementProgress(achievementId, progress)
+        achievementManager.updateProgress(achievementId, progress)
     }
 }
 
@@ -191,9 +171,7 @@ fun OfflineMonitor(
     var showDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(isOnline) {
-        if (!isOnline) {
-            showDialog = true
-        }
+        showDialog = !isOnline
     }
 
     if (showDialog && !isOnline) {

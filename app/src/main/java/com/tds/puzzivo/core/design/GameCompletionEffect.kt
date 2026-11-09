@@ -32,8 +32,8 @@ fun RecordGameCompletionEffect(
     hintsUsed: Int = 0
 ) {
     val context = LocalContext.current
-    var recorded by rememberSaveable(gameType) { mutableStateOf(false) }
     var completionId by rememberSaveable(gameType) { mutableStateOf(java.util.UUID.randomUUID().toString()) }
+    var recorded by rememberSaveable(gameType, completionId) { mutableStateOf(false) }
     LaunchedEffect(gameType, completed) {
         if (!completed) {
             recorded = false

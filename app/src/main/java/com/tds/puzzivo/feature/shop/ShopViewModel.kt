@@ -52,6 +52,12 @@ class ShopViewModel @Inject constructor(
             val gemsDeducted = if (item.priceGems > 0) progressionManager.spendGems(item.priceGems) else true
 
             if (!coinsDeducted || !gemsDeducted) {
+                if (coinsDeducted && item.priceCoins > 0) {
+                    progressionManager.addCoins(item.priceCoins)
+                }
+                if (gemsDeducted && item.priceGems > 0) {
+                    progressionManager.addGems(item.priceGems)
+                }
                 onResult(false, "Transaction failed — insufficient balance.")
                 return@launch
             }

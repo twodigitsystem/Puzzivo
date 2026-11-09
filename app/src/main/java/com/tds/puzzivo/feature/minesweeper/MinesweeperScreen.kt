@@ -66,10 +66,10 @@ private data class MineBoard(
 ) {
     companion object {
         fun create(): MineBoard {
-            val mineIndices = setOf(1, 7, 14, 19, 27, 31, 34, 35)
-            val mines = mineIndices.map { it.coerceIn(0, BOARD_SIZE * BOARD_SIZE - 1) }.toSet()
-            val cells = List(BOARD_SIZE * BOARD_SIZE) { index ->
-                MineCell(mine = index in mines, adjacent = countAdjacent(index, mines))
+            val allIndices = (0 until BOARD_SIZE * BOARD_SIZE).toList()
+            val mineIndices = allIndices.shuffled().take(MINE_COUNT).toSet()
+            val cells = allIndices.map { index ->
+                MineCell(mine = index in mineIndices, adjacent = countAdjacent(index, mineIndices))
             }
             return MineBoard(cells)
         }

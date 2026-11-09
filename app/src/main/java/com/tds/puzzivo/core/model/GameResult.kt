@@ -8,9 +8,3 @@ data class GameResult(
     val timeInSeconds: Int = 0,
     val details: String = ""
 )
-
-data class DailyPick(
-    val gameType: GameType,
-    val dateString: String,
-    val isCompleted: Boolean
-)

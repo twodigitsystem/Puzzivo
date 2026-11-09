@@ -42,6 +42,7 @@ import com.tds.puzzivo.core.design.PuzzivoTopBar
 import com.tds.puzzivo.core.design.StatisticsCard
 import com.tds.puzzivo.core.design.TextPrimary
 import com.tds.puzzivo.core.design.TextSecondary
+import com.tds.puzzivo.core.util.formatTime
 
 @Composable
 fun StatisticsScreen(
@@ -151,7 +152,7 @@ private fun OverallPerformanceHeader(
     totalScore: Long,
     bestStreak: Int
 ) {
-    val winRate = if (totalPlayed > 0) (totalWins * 100 / totalPlayed) else 0
+    val winRate = if (totalPlayed > 0) kotlin.math.round(totalWins * 100.0 / totalPlayed).toInt() else 0
 
     PuzzivoCard(
         backgroundColor = NavySurface,
@@ -207,7 +208,7 @@ private fun OverallPerformanceHeader(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                OverallStatMetric(label = "Play Time", value = formatPlayTime(playTimeSeconds), color = TextPrimary)
+                OverallStatMetric(label = "Play Time", value = formatTime(playTimeSeconds), color = TextPrimary)
                 OverallStatMetric(label = "Best Streak", value = "$bestStreak 🔥", color = AccentOrange)
                 OverallStatMetric(label = "High Score", value = "$totalScore", color = AccentCyan)
             }
@@ -280,15 +281,4 @@ private fun CurrentStreakCard(currentStreak: Int) {
     }
 }
 
-private fun formatPlayTime(seconds: Long): String {
-    val minutes = seconds / 60
-    val hours = minutes / 60
-    val remainingMinutes = minutes % 60
-    val remainingSeconds = seconds % 60
 
-    return when {
-        hours > 0 -> "${hours}h ${remainingMinutes}m"
-        minutes > 0 -> "${minutes}m ${remainingSeconds}s"
-        else -> "${remainingSeconds}s"
-    }
-}

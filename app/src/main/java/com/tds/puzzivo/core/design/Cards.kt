@@ -36,6 +36,7 @@ import com.tds.puzzivo.core.model.DailyChallenge
 import com.tds.puzzivo.core.model.DifficultyLevel
 import com.tds.puzzivo.core.model.GameStatistics
 import com.tds.puzzivo.core.model.GameTheme
+import com.tds.puzzivo.core.util.formatTime
 
 /**
  * Card displaying achievement details in Puzzivo Dark Theme
@@ -284,7 +285,7 @@ fun StatisticsCard(
                 StatItem(
                     label = "Win Rate",
                     value = if (statistics.totalPlays > 0)
-                        "${(statistics.totalWins * 100 / statistics.totalPlays)}%"
+                        "${kotlin.math.round(statistics.totalWins * 100.0 / statistics.totalPlays).toInt()}%"
                     else "0%",
                     accentColor = AccentYellow
                 )
@@ -463,8 +464,4 @@ private fun RewardBadge(
     }
 }
 
-private fun formatTime(seconds: Long): String {
-    val minutes = seconds / 60
-    val secs = seconds % 60
-    return if (minutes > 0) "${minutes}m ${secs}s" else "${secs}s"
-}
+

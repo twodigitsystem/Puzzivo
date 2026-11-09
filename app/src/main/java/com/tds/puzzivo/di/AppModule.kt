@@ -21,11 +21,26 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import javax.inject.Qualifier
 import javax.inject.Singleton
+
+@Retention(AnnotationRetention.BINARY)
+@Qualifier
+annotation class ApplicationScope
 
 @Module
 @InstallIn(SingletonComponent::class)
 object AppModule {
+
+    @Provides
+    @Singleton
+    @ApplicationScope
+    fun provideApplicationScope(): CoroutineScope {
+        return CoroutineScope(SupervisorJob() + Dispatchers.IO)
+    }
 
     @Provides
     @Singleton
@@ -160,9 +175,10 @@ object AppModule {
     @Singleton
     fun provideAchievementManager(
         achievementDao: com.tds.puzzivo.core.database.AchievementDao,
-        progressDao: com.tds.puzzivo.core.database.ProgressDao
+        progressDao: com.tds.puzzivo.core.database.ProgressDao,
+        progressionManager: com.tds.puzzivo.core.manager.ProgressionManager
     ): com.tds.puzzivo.core.manager.AchievementManager {
-        return com.tds.puzzivo.core.manager.AchievementManager(achievementDao, progressDao)
+        return com.tds.puzzivo.core.manager.AchievementManager(achievementDao, progressDao, progressionManager)
     }
 
     @Provides
@@ -216,8 +232,9 @@ object AppModule {
         authManager: AuthManager,
         achievementManager: com.tds.puzzivo.core.manager.AchievementManager,
         progressionManager: com.tds.puzzivo.core.manager.ProgressionManager,
-        remoteConfigManager: com.tds.puzzivo.core.config.RemoteConfigManager
+        remoteConfigManager: com.tds.puzzivo.core.config.RemoteConfigManager,
+        @ApplicationScope scope: CoroutineScope
     ): com.tds.puzzivo.core.init.AppInitializer {
-        return com.tds.puzzivo.core.init.AppInitializer(authManager, achievementManager, progressionManager, remoteConfigManager)
+        return com.tds.puzzivo.core.init.AppInitializer(authManager, achievementManager, progressionManager, remoteConfigManager, scope)
     }
 }

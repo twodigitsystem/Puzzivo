@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.tds.puzzivo.core.storage.PreferencesRepository
 import com.tds.puzzivo.core.storage.UserPreferences
 import com.tds.puzzivo.core.model.DifficultyLevel
+import com.tds.puzzivo.core.model.GameMode
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -39,6 +40,18 @@ class SettingsViewModel @Inject constructor(
     fun setDifficulty(difficulty: DifficultyLevel) {
         viewModelScope.launch {
             repository.setSelectedDifficulty(difficulty)
+        }
+    }
+
+    fun setSelectedGameMode(mode: GameMode) {
+        viewModelScope.launch {
+            repository.setSelectedGameMode(mode)
+        }
+    }
+
+    fun setTextScaleFactor(scale: Float) {
+        viewModelScope.launch {
+            repository.setTextScaleFactor(scale)
         }
     }
 

@@ -237,6 +237,7 @@
     <string name="sudoku_hint">Hint</string>
     <string name="sudoku_clear">Clear</string>
     <string name="sudoku_new_puzzle">New Puzzle</string>
+    <string name="sudoku_score" translatable="false">Score: %1$d</string>
     <string name="sudoku_cell">Row %1$d, column %2$d, %3$s</string>
     <string name="sudoku_empty">empty</string>
     <string name="sudoku_filled">number %1$d</string>
@@ -265,13 +266,21 @@
     <string name="pattern_recall_game_over">Pattern Complete</string>
 
     <string name="word_scramble_title">Word Scramble</string>
-    <string name="word_scramble_rules">Tap letters to build the hidden word. Tap a selected letter to remove it, or use clear to start over.</string>
-    <string name="word_scramble_round">Round %1$d</string>
+    <string name="word_scramble_rules">Tap letters to build the hidden word. Tap a selected letter in the guess box to remove it. Use hints or reshuffle if you get stuck!</string>
+    <string name="word_scramble_round">Round %1$d of %2$d</string>
     <string name="word_scramble_submit">Submit</string>
     <string name="word_scramble_clear">Clear</string>
     <string name="word_scramble_correct">Correct!</string>
     <string name="word_scramble_wrong">Not quite</string>
     <string name="word_scramble_complete">Scramble Complete!</string>
+    <string name="word_scramble_category">Category: %1$s</string>
+    <string name="word_scramble_hint">Hint</string>
+    <string name="word_scramble_backspace">Backspace</string>
+    <string name="word_scramble_shuffle" translatable="false">Shuffle Pool</string>
+    <string name="word_scramble_score">Score: %1$d</string>
+    <string name="word_scramble_best">Best: %1$d</string>
+    <string name="word_scramble_combo" translatable="false">%1$d× Streak!</string>
+    <string name="word_scramble_definition" translatable="false">Definition: %1$s</string>
 
     <string name="lights_out_title">Lights Out</string>
     <string name="lights_out_rules">Tap a light to toggle it and its up, down, left, and right neighbors. Turn every light off.</string>
@@ -298,6 +307,24 @@
     <string name="theme_sunset_orange">Sunset Orange</string>
     <string name="theme_midnight_purple">Midnight Purple</string>
     <string name="theme_rose_gold">Rose Gold</string>
+
+    <!-- Shop Items -->
+    <string name="shop_hints_pack_name" translatable="false">Hint Pack</string>
+    <string name="shop_hints_pack_desc" translatable="false">Get 5 free hints for Word Search, Scramble &amp; Sudoku</string>
+    <string name="shop_undo_pack_name" translatable="false">Undo Pack</string>
+    <string name="shop_undo_pack_desc" translatable="false">Get 5 undos for Number Merge &amp; Lights Out</string>
+    <string name="shop_time_boost_name" translatable="false">Time Booster</string>
+    <string name="shop_time_boost_desc" translatable="false">Adds +15 seconds in Quick Math &amp; timed games</string>
+    <string name="shop_double_coins_name" translatable="false">2x Coin Multiplier</string>
+    <string name="shop_double_coins_desc" translatable="false">Earn double coins permanently on all game wins</string>
+    <string name="shop_theme_forest_name" translatable="false">Forest Green Theme</string>
+    <string name="shop_theme_forest_desc" translatable="false">Lush green aesthetic for all puzzle boards</string>
+    <string name="shop_theme_ocean_name" translatable="false">Ocean Blue Theme</string>
+    <string name="shop_theme_ocean_desc" translatable="false">Cool aquatic palette and sleek blue tiles</string>
+    <string name="shop_theme_sunset_name" translatable="false">Sunset Orange Theme</string>
+    <string name="shop_theme_sunset_desc" translatable="false">Warm vibrant sunset tones for board cards</string>
+    <string name="shop_theme_rose_gold_name" translatable="false">Rose Gold Theme</string>
+    <string name="shop_theme_rose_gold_desc" translatable="false">Premium luxurious rose gold theme</string>
 
     <!-- Daily Challenges -->
     <string name="challenge_nm_score_2000">Score 2,000 points in Number Merge</string>

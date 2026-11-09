@@ -238,39 +238,45 @@ Need to update each game ViewModel and Screen:
    - [ ] Difficulty affects pattern length
    - [ ] Track "long pattern" achievement
 
-8. ⬜ **WordScramble**
-   - [ ] Extend BaseGameViewModel
-   - [ ] Add monitors
-   - [ ] Difficulty affects word length
-   - [ ] Track "long word" achievement
+8. ✅ **WordScramble**
+   - [x] Extend Hilt ViewModel & SavedStateHandle (`WordScrambleViewModel`)
+   - [x] Create standalone Game Engine & Repository (`WordScrambleGameEngine`, `WordScrambleRepository`)
+   - [x] Difficulty affects word length & dictionary (Easy: 3-4 letters, Medium: 5-6 letters, Hard: 7+ letters)
+   - [x] Support backspace, hint, error shake feedback, audio & haptics
+   - [x] Unit test coverage (`WordScrambleGameEngineTest`)
 
-9. ⬜ **LightsOut**
-   - [ ] Extend BaseGameViewModel
-   - [ ] Add monitors
-   - [ ] Difficulty affects grid size
-   - [ ] Track "minimum moves" achievement
+9. ✅ **LightsOut**
+   - [x] Extend Hilt ViewModel & SavedStateHandle (`LightsOutViewModel`)
+   - [x] Create standalone Game Engine (`LightsOutGameEngine`)
+   - [x] Difficulty affects grid size (Easy: 3x3, Medium: 4x4, Hard: 5x5)
+   - [x] Solvable board generation, hints, audio & haptics
 
-10. ⬜ **Nonogram**
-    - [ ] Extend BaseGameViewModel
-    - [ ] Add monitors
-    - [ ] Difficulty affects puzzle size
-    - [ ] Track "no mistakes" achievement
+10. ✅ **Nonogram**
+    - [x] Extend Hilt ViewModel & SavedStateHandle (`NonogramViewModel`)
+    - [x] Create standalone Game Engine & Repository (`NonogramGameEngine`, `NonogramRepository`)
+    - [x] Difficulty affects grid size and clues
+    - [x] Fill/mark modes, hints, audio & haptics (`NonogramGameEngineTest`)
 
-11. ⬜ **HexMerge**
-    - [ ] Extend BaseGameViewModel
-    - [ ] Add monitors
-    - [ ] Difficulty affects board size
-    - [ ] Track "high score" achievement
+11. ✅ **HexMerge**
+    - [x] Extend Hilt ViewModel & SavedStateHandle (`HexMergeViewModel`)
+    - [x] Create standalone Game Engine (`HexMergeGameEngine`)
+    - [x] Hexagonal coordinate system, 6 slide directions, scoring & best scores (`HexMergeGameEngineTest`)
+
+12. ✅ **MiniSudoku**
+    - [x] Extend Hilt ViewModel & SavedStateHandle (`SudokuViewModel`)
+    - [x] Create standalone Game Engine (`SudokuGameEngine`)
+    - [x] 6x6 Sudoku grid generation, givens, error tracking, hints, audio & haptics (`SudokuGameEngineTest`)
 
 ---
 
-## 📋 Phase 9: Remaining Features (0% Complete)
+## 📋 Phase 9: Remaining Features (90% Complete)
 
 ### Shop System
-- ⬜ Create ShopScreen + ViewModel
-- ⬜ Define shop items (themes, power-ups, hints)
-- ⬜ Add purchase with coins/gems
-- ⬜ Add navigation to shop
+- [x] Create ShopScreen + ViewModel
+- [x] Define shop items (themes, power-ups, hints, boosters)
+- [x] Add purchase with coins/gems
+- [x] Add navigation & category filtering in shop
+- [x] Unit test coverage (`ShopViewModelTest`)
 
 ### Tutorial System
 - ⬜ Create tutorial overlay system

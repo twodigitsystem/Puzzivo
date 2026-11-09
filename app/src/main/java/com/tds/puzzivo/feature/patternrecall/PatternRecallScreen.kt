@@ -12,16 +12,16 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -33,10 +33,12 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.tds.puzzivo.R
 import com.tds.puzzivo.core.design.AccentCyan
 import com.tds.puzzivo.core.design.AccentYellow
 import com.tds.puzzivo.core.design.CardBorderColor
+import com.tds.puzzivo.core.design.ConfettiParticleOverlay
 import com.tds.puzzivo.core.design.InstructionDialog
 import com.tds.puzzivo.core.design.NavyBackground
 import com.tds.puzzivo.core.design.NavySurface
@@ -44,133 +46,159 @@ import com.tds.puzzivo.core.design.NavySurfaceVariant
 import com.tds.puzzivo.core.design.PrimaryButton
 import com.tds.puzzivo.core.design.PuzzivoCard
 import com.tds.puzzivo.core.design.PuzzivoTopBar
-import com.tds.puzzivo.core.design.RecordGameCompletionEffect
-import com.tds.puzzivo.core.design.TrackGameStartEffect
 import com.tds.puzzivo.core.design.ResultDialog
+import com.tds.puzzivo.core.design.TextPrimary
 import com.tds.puzzivo.core.design.TextSecondary
-import com.tds.puzzivo.core.util.intListSaver
-import kotlin.random.Random
+import com.tds.puzzivo.core.model.DifficultyLevel
 
 @Composable
-fun PatternRecallScreen(onBackClick: () -> Unit) {
-    var sequence by rememberSaveable(stateSaver = intListSaver) {
-        mutableStateOf(listOf(Random.nextInt(9)))
-    }
-    var inputIndex by rememberSaveable { mutableIntStateOf(0) }
-    var litCell by rememberSaveable { mutableStateOf<Int?>(null) }
-    var isShowing by rememberSaveable { mutableStateOf(true) }
-    var round by rememberSaveable { mutableIntStateOf(1) }
-    var gameOver by rememberSaveable { mutableStateOf(false) }
-    var showHelp by remember { mutableStateOf(false) }
-
-    LaunchedEffect(sequence, gameOver) {
-        if (gameOver) return@LaunchedEffect
-        isShowing = true
-        inputIndex = 0
-        kotlinx.coroutines.delay(500)
-        sequence.forEach { cell ->
-            litCell = cell
-            kotlinx.coroutines.delay(450)
-            litCell = null
-            kotlinx.coroutines.delay(120)
-        }
-        isShowing = false
-    }
-
-    fun tapCell(cell: Int) {
-        if (isShowing || gameOver) return
-        if (cell != sequence[inputIndex]) {
-            gameOver = true
-            litCell = null
-            return
-        }
-        inputIndex += 1
-        if (inputIndex == sequence.size) {
-            round += 1
-            sequence = sequence + Random.nextInt(9)
-        }
-    }
-
-    fun reset() {
-        sequence = listOf(Random.nextInt(9))
-        round = 1
-        inputIndex = 0
-        litCell = null
-        gameOver = false
-    }
-
-    TrackGameStartEffect(com.tds.puzzivo.core.model.GameType.PATTERN_RECALL)
-    RecordGameCompletionEffect(
-        gameType = com.tds.puzzivo.core.model.GameType.PATTERN_RECALL,
-        completed = gameOver && round > 1,
-        score = (round - 1).coerceAtLeast(0) * 100,
-        won = false,
-        moves = (round - 1).coerceAtLeast(0)
-    )
+fun PatternRecallScreen(
+    onBackClick: () -> Unit,
+    viewModel: PatternRecallViewModel = hiltViewModel()
+) {
+    val uiState by viewModel.uiState.collectAsState()
+    val shouldShowInstructions by viewModel.shouldShowInstructions.collectAsState()
+    var showHelpDialog by remember { mutableStateOf(false) }
 
     Surface(color = NavyBackground, modifier = Modifier.fillMaxSize()) {
-        Column(modifier = Modifier.fillMaxSize()) {
-            PuzzivoTopBar(
-                title = stringResource(R.string.pattern_recall_title),
-                onBackClick = onBackClick,
-                onActionClick = { showHelp = true },
-                actionContentDescription = stringResource(R.string.action_help)
-            )
-            Column(
-                modifier = Modifier.fillMaxSize().padding(16.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Text(stringResource(R.string.pattern_recall_round, round), color = AccentCyan, fontWeight = FontWeight.Bold)
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    text = if (isShowing) stringResource(R.string.pattern_recall_watch) else stringResource(R.string.pattern_recall_repeat),
-                    color = if (isShowing) AccentYellow else TextSecondary,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold
+        Box(modifier = Modifier.fillMaxSize()) {
+            Column(modifier = Modifier.fillMaxSize()) {
+                PuzzivoTopBar(
+                    title = stringResource(R.string.pattern_recall_title),
+                    onBackClick = onBackClick,
+                    onActionClick = { showHelpDialog = true },
+                    actionContentDescription = stringResource(R.string.action_help)
                 )
-                Spacer(modifier = Modifier.height(18.dp))
-                PuzzivoCard(
-                    backgroundColor = NavySurfaceVariant,
-                    borderColor = CardBorderColor,
-                    modifier = Modifier.fillMaxWidth().aspectRatio(1f)
+
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    Column(modifier = Modifier.fillMaxSize().padding(10.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        repeat(3) { row ->
-                            Row(modifier = Modifier.fillMaxWidth().weight(1f), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                repeat(3) { col ->
-                                    val cell = row * 3 + col
-                                    RecallCell(
-                                        cell = cell,
-                                        isLit = litCell == cell,
-                                        isEnabled = !isShowing && !gameOver,
-                                        onClick = { tapCell(cell) },
-                                        modifier = Modifier.weight(1f).fillMaxSize()
-                                    )
+                    // Difficulty Chips
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        modifier = Modifier.padding(bottom = 12.dp)
+                    ) {
+                        listOf(DifficultyLevel.EASY, DifficultyLevel.MEDIUM, DifficultyLevel.HARD).forEach { difficulty ->
+                            FilterChip(
+                                selected = uiState.difficulty == difficulty,
+                                onClick = { viewModel.onDifficultySelected(difficulty) },
+                                label = { Text(difficulty.name, fontWeight = FontWeight.Bold) },
+                                colors = FilterChipDefaults.filterChipColors(
+                                    selectedContainerColor = AccentYellow,
+                                    selectedLabelColor = NavyBackground,
+                                    containerColor = NavySurface,
+                                    labelColor = TextSecondary
+                                )
+                            )
+                        }
+                    }
+
+                    // Header Info Bar (Round & Score)
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 8.dp, vertical = 4.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = stringResource(R.string.pattern_recall_round, uiState.round),
+                            color = AccentCyan,
+                            fontWeight = FontWeight.Bold,
+                            style = MaterialTheme.typography.titleMedium
+                        )
+
+                        Text(
+                            text = "Score: ${uiState.score}",
+                            color = TextPrimary,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    Text(
+                        text = if (uiState.isShowingSequence) stringResource(R.string.pattern_recall_watch) else stringResource(R.string.pattern_recall_repeat),
+                        color = if (uiState.isShowingSequence) AccentYellow else TextSecondary,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+
+                    Spacer(modifier = Modifier.height(18.dp))
+
+                    PuzzivoCard(
+                        backgroundColor = NavySurfaceVariant,
+                        borderColor = CardBorderColor,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .aspectRatio(1f)
+                    ) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(10.dp),
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            repeat(uiState.gridSide) { row ->
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .weight(1f),
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                ) {
+                                    repeat(uiState.gridSide) { col ->
+                                        val cell = row * uiState.gridSide + col
+                                        RecallCell(
+                                            cell = cell,
+                                            isLit = uiState.litCell == cell,
+                                            isEnabled = !uiState.isShowingSequence && !uiState.isGameOver,
+                                            onClick = { viewModel.onCellTap(cell) },
+                                            modifier = Modifier
+                                                .weight(1f)
+                                                .fillMaxSize()
+                                        )
+                                    }
                                 }
                             }
                         }
                     }
+
+                    Spacer(modifier = Modifier.height(18.dp))
+
+                    PrimaryButton(
+                        text = stringResource(R.string.action_restart),
+                        onClick = { viewModel.onRestart() }
+                    )
                 }
-                Spacer(modifier = Modifier.height(18.dp))
-                PrimaryButton(text = stringResource(R.string.action_restart), onClick = ::reset)
+            }
+
+            if (uiState.round > 5 && uiState.isGameOver) {
+                ConfettiParticleOverlay()
             }
         }
     }
 
-    if (showHelp) {
+    if (shouldShowInstructions || showHelpDialog) {
         InstructionDialog(
             title = stringResource(R.string.pattern_recall_title),
             description = stringResource(R.string.pattern_recall_rules),
-            onDismiss = { showHelp = false }
+            onDismiss = {
+                showHelpDialog = false
+                viewModel.onInstructionsDismissed()
+            }
         )
     }
-    if (gameOver) {
+
+    if (uiState.isGameOver) {
         ResultDialog(
             title = stringResource(R.string.pattern_recall_game_over),
-            scoreText = stringResource(R.string.pattern_recall_round, (round - 1).coerceAtLeast(0)),
-            isNewBest = false,
-            bestScoreText = stringResource(R.string.pattern_recall_title),
-            onReplayClick = ::reset,
+            scoreText = stringResource(R.string.pattern_recall_round, (uiState.round - 1).coerceAtLeast(0)),
+            isNewBest = uiState.score > 0,
+            bestScoreText = "Score: ${uiState.score}",
+            onReplayClick = { viewModel.onRestart() },
             onHomeClick = onBackClick
         )
     }

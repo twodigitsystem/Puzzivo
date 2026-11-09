@@ -1,6 +1,9 @@
 package com.tds.puzzivo.core.design
 
 import android.view.ViewGroup
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -11,6 +14,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -27,6 +31,7 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -34,12 +39,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -56,17 +63,16 @@ import com.tds.puzzivo.core.ads.AdUnitIds
 
 @Composable
 fun PuzzivoTopBar(
-    modifier: Modifier = Modifier,
     title: String,
-    onBackClick: (() -> Unit)? = null,
+    onBackClick: () -> Unit,
     onActionClick: (() -> Unit)? = null,
-    actionContentDescription: String = "",
     actionIcon: ImageVector = Icons.AutoMirrored.Outlined.HelpOutline,
+    actionContentDescription: String? = null
 ) {
-    val backDescription = stringResource(R.string.action_back)
     Surface(
         color = NavySurface,
-        modifier = modifier.fillMaxWidth()
+        border = BorderStroke(1.dp, CardBorderColor),
+        modifier = Modifier.fillMaxWidth()
     ) {
         Row(
             modifier = Modifier
@@ -75,66 +81,46 @@ fun PuzzivoTopBar(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Box(modifier = Modifier.width(48.dp)) {
-                if (onBackClick != null) {
-                    IconButton(
-                        onClick = onBackClick,
-                        modifier = Modifier.semantics { contentDescription = backDescription }
-                    ) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Outlined.ArrowBack,
-                            contentDescription = null,
-                            tint = TextPrimary
-                        )
-                    }
+            IconButton(
+                onClick = onBackClick,
+                modifier = Modifier.semantics {
+                    contentDescription = "Back"
+                    role = Role.Button
                 }
+            ) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Outlined.ArrowBack,
+                    contentDescription = "Back",
+                    tint = TextPrimary
+                )
             }
 
             Text(
                 text = title,
                 style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold,
+                fontWeight = FontWeight.Black,
                 color = TextPrimary,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.weight(1f)
+                letterSpacing = 0.5.sp
             )
 
-            Box(modifier = Modifier.width(48.dp)) {
-                if (onActionClick != null) {
-                    IconButton(
-                        onClick = onActionClick,
-                        modifier = Modifier.semantics { contentDescription = actionContentDescription }
-                    ) {
-                        Icon(
-                            imageVector = actionIcon,
-                            contentDescription = null,
-                            tint = TextPrimary
-                        )
+            if (onActionClick != null) {
+                IconButton(
+                    onClick = onActionClick,
+                    modifier = Modifier.semantics {
+                        contentDescription = actionContentDescription ?: "Action"
+                        role = Role.Button
                     }
+                ) {
+                    Icon(
+                        imageVector = actionIcon,
+                        contentDescription = actionContentDescription,
+                        tint = AccentYellow
+                    )
                 }
+            } else {
+                Spacer(modifier = Modifier.size(48.dp))
             }
         }
-    }
-}
-
-@Composable
-fun PuzzivoCard(
-    modifier: Modifier = Modifier,
-    backgroundColor: Color = NavySurface,
-    borderColor: Color = CardBorderColor,
-    onClick: (() -> Unit)? = null,
-    content: @Composable () -> Unit
-) {
-    Card(
-        shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(containerColor = backgroundColor),
-        border = BorderStroke(1.5.dp, borderColor),
-        elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
-        modifier = modifier.then(
-            if (onClick != null) Modifier.clickable(role = Role.Button) { onClick() } else Modifier
-        )
-    ) {
-        content()
     }
 }
 
@@ -150,23 +136,19 @@ fun PrimaryButton(
     Button(
         onClick = onClick,
         enabled = enabled,
-        shape = RoundedCornerShape(14.dp),
-        elevation = ButtonDefaults.buttonElevation(defaultElevation = 8.dp, pressedElevation = 2.dp),
+        shape = RoundedCornerShape(12.dp),
         colors = ButtonDefaults.buttonColors(
             containerColor = containerColor,
             contentColor = contentColor,
             disabledContainerColor = NavySurfaceVariant,
             disabledContentColor = TextSecondary
         ),
-        modifier = modifier
-            .fillMaxWidth()
-            .height(54.dp)
+        modifier = modifier.fillMaxWidth().height(50.dp)
     ) {
         Text(
             text = text,
             fontSize = 16.sp,
-            fontWeight = FontWeight.Black,
-            letterSpacing = 0.5.sp
+            fontWeight = FontWeight.Bold
         )
     }
 }
@@ -184,11 +166,10 @@ fun SecondaryButton(
         shape = RoundedCornerShape(12.dp),
         border = BorderStroke(1.dp, CardBorderColor),
         colors = ButtonDefaults.outlinedButtonColors(
-            contentColor = TextPrimary
+            contentColor = TextPrimary,
+            disabledContentColor = TextSecondary
         ),
-        modifier = modifier
-            .fillMaxWidth()
-            .height(52.dp)
+        modifier = modifier.fillMaxWidth().height(50.dp)
     ) {
         Text(
             text = text,
@@ -208,11 +189,19 @@ fun InstructionDialog(
         description.split("\n").map { it.trim() }.filter { it.isNotEmpty() }
     }
 
+    var animateTrigger by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) { animateTrigger = true }
+    val scale by animateFloatAsState(
+        targetValue = if (animateTrigger) 1f else 0f,
+        animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessLow),
+        label = "InstructionDialogScale"
+    )
+
     Dialog(onDismissRequest = onDismiss) {
         PuzzivoCard(
             backgroundColor = NavySurface,
             borderColor = AccentYellow,
-            modifier = Modifier.padding(12.dp)
+            modifier = Modifier.padding(12.dp).scale(scale)
         ) {
             Column(
                 modifier = Modifier
@@ -273,9 +262,17 @@ fun ConfirmationDialog(
     onConfirm: () -> Unit,
     onDismiss: () -> Unit
 ) {
+    var animateTrigger by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) { animateTrigger = true }
+    val scale by animateFloatAsState(
+        targetValue = if (animateTrigger) 1f else 0f,
+        animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessLow),
+        label = "ConfirmationDialogScale"
+    )
+
     Dialog(onDismissRequest = onDismiss) {
         PuzzivoCard(
-            modifier = Modifier.padding(16.dp)
+            modifier = Modifier.padding(16.dp).scale(scale)
         ) {
             Column(
                 modifier = Modifier
@@ -336,9 +333,17 @@ fun ResultDialog(
     onReplayClick: () -> Unit,
     onHomeClick: () -> Unit
 ) {
+    var animateTrigger by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) { animateTrigger = true }
+    val scale by animateFloatAsState(
+        targetValue = if (animateTrigger) 1f else 0f,
+        animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessLow),
+        label = "ResultDialogScale"
+    )
+
     Dialog(onDismissRequest = onHomeClick) {
         PuzzivoCard(
-            modifier = Modifier.padding(16.dp)
+            modifier = Modifier.padding(16.dp).scale(scale)
         ) {
             Column(
                 modifier = Modifier
@@ -468,11 +473,7 @@ fun BannerAdView(
                          }
                      })
                 }
-            },
-            onRelease = { adView ->
-                adView.destroy()
-            },
-            modifier = Modifier.fillMaxWidth()
+            }
         )
     }
 }

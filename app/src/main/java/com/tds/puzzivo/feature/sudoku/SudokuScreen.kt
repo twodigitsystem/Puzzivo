@@ -1,5 +1,6 @@
 package com.tds.puzzivo.feature.sudoku
 
+import android.app.Activity
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -13,17 +14,24 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Lightbulb
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
@@ -32,10 +40,13 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.tds.puzzivo.R
+import com.tds.puzzivo.core.design.AccentCyan
 import com.tds.puzzivo.core.design.AccentGreen
 import com.tds.puzzivo.core.design.AccentYellow
 import com.tds.puzzivo.core.design.CardBorderColor
+import com.tds.puzzivo.core.design.ConfettiParticleOverlay
 import com.tds.puzzivo.core.design.InstructionDialog
 import com.tds.puzzivo.core.design.NavyBackground
 import com.tds.puzzivo.core.design.NavySurface
@@ -43,248 +54,209 @@ import com.tds.puzzivo.core.design.NavySurfaceVariant
 import com.tds.puzzivo.core.design.PrimaryButton
 import com.tds.puzzivo.core.design.PuzzivoCard
 import com.tds.puzzivo.core.design.PuzzivoTopBar
-import com.tds.puzzivo.core.design.RecordGameCompletionEffect
-import com.tds.puzzivo.core.design.TrackGameStartEffect
 import com.tds.puzzivo.core.design.ResultDialog
 import com.tds.puzzivo.core.design.SecondaryButton
 import com.tds.puzzivo.core.design.TextPrimary
 import com.tds.puzzivo.core.design.TextSecondary
-import com.tds.puzzivo.core.util.intListSaver
-
-private data class SudokuPuzzle(
-    val solution: List<Int>,
-    val givens: Set<Int>
-) {
-    companion object {
-        fun create(variant: Int = 0): SudokuPuzzle {
-            val base = listOf(
-                1, 2, 3, 4, 5, 6,
-                4, 5, 6, 1, 2, 3,
-                2, 3, 4, 5, 6, 1,
-                5, 6, 1, 2, 3, 4,
-                3, 4, 5, 6, 1, 2,
-                6, 1, 2, 3, 4, 5
-            )
-            val shift = variant % 6
-            return SudokuPuzzle(
-                solution = base.map { number -> ((number - 1 + shift) % 6) + 1 },
-                givens = setOf(0, 2, 3, 5, 6, 7, 9, 11, 12, 14, 17, 18, 20, 21, 23, 26, 28, 29)
-            )
-        }
-    }
-}
+import com.tds.puzzivo.core.model.DifficultyLevel
 
 @Composable
-fun SudokuScreen(onBackClick: () -> Unit) {
-    var puzzleNumber by rememberSaveable { mutableIntStateOf(0) }
-    val puzzle = SudokuPuzzle.create(puzzleNumber)
-    var values by rememberSaveable(stateSaver = intListSaver) {
-        mutableStateOf(List(36) { index -> if (index in puzzle.givens) puzzle.solution[index] else 0 })
-    }
-    var selectedIndex by rememberSaveable { mutableStateOf<Int?>(null) }
-    var mistakes by rememberSaveable { mutableIntStateOf(0) }
-    var hintsUsed by rememberSaveable { mutableIntStateOf(0) }
-    var showHelp by remember { mutableStateOf(false) }
-    var showResult by remember { mutableStateOf(false) }
-
-    fun resetPuzzle() {
-        puzzleNumber += 1
-        val nextPuzzle = SudokuPuzzle.create(puzzleNumber)
-        values = List(36) { index -> if (index in nextPuzzle.givens) nextPuzzle.solution[index] else 0 }
-        selectedIndex = null
-        mistakes = 0
-        hintsUsed = 0
-        showResult = false
-    }
-
-    fun fill(value: Int) {
-        val index = selectedIndex ?: return
-        if (index in puzzle.givens || values[index] != 0) return
-        if (puzzle.solution[index] == value) {
-            values = values.toMutableList().also { it[index] = value }
-            if (values.withIndex().all { (cell, number) -> number == puzzle.solution[cell] }) {
-                showResult = true
-            }
-        } else {
-            mistakes += 1
-        }
-    }
-
-    fun applyHint() {
-        val index = values.indices.firstOrNull { idx -> values[idx] == 0 && idx !in puzzle.givens } ?: -1
-        if (index >= 0) {
-            hintsUsed += 1
-            values = values.toMutableList().also { it[index] = puzzle.solution[index] }
-            selectedIndex = index
-            if (values.withIndex().all { (cell, number) -> number == puzzle.solution[cell] }) {
-                showResult = true
-            }
-        }
-    }
-
-    TrackGameStartEffect(com.tds.puzzivo.core.model.GameType.MINI_SUDOKU)
-    RecordGameCompletionEffect(
-        gameType = com.tds.puzzivo.core.model.GameType.MINI_SUDOKU,
-        completed = showResult,
-        score = (1000 - mistakes * 25).coerceAtLeast(0),
-        moves = values.count { it != 0 },
-        hintsUsed = hintsUsed
-    )
+fun SudokuScreen(
+    onBackClick: () -> Unit,
+    viewModel: SudokuViewModel = hiltViewModel()
+) {
+    val uiState by viewModel.uiState.collectAsState()
+    val shouldShowInstructions by viewModel.shouldShowInstructions.collectAsState()
+    var showHelpDialog by remember { mutableStateOf(false) }
+    val context = LocalContext.current
 
     Surface(color = NavyBackground, modifier = Modifier.fillMaxSize()) {
-        Column(modifier = Modifier.fillMaxSize()) {
-            PuzzivoTopBar(
-                title = stringResource(R.string.sudoku_title),
-                onBackClick = onBackClick,
-                onActionClick = { showHelp = true },
-                actionContentDescription = stringResource(R.string.action_help)
-            )
-
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(16.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Text(
-                    text = stringResource(R.string.sudoku_mistakes, mistakes),
-                    color = if (mistakes == 0) TextSecondary else AccentYellow,
-                    fontWeight = FontWeight.Bold
+        Box(modifier = Modifier.fillMaxSize()) {
+            Column(modifier = Modifier.fillMaxSize()) {
+                PuzzivoTopBar(
+                    title = stringResource(R.string.sudoku_title),
+                    onBackClick = onBackClick,
+                    onActionClick = { showHelpDialog = true },
+                    actionContentDescription = stringResource(R.string.action_help)
                 )
-                Spacer(modifier = Modifier.height(12.dp))
 
-                PuzzivoCard(
-                    backgroundColor = NavySurfaceVariant,
-                    borderColor = CardBorderColor,
-                    modifier = Modifier.fillMaxWidth().aspectRatio(1f)
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    Column(
-                        modifier = Modifier.fillMaxSize().padding(8.dp),
-                        verticalArrangement = Arrangement.spacedBy(4.dp)
+                    // Difficulty Selector
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        modifier = Modifier.padding(bottom = 8.dp)
                     ) {
-                        repeat(6) { row ->
-                            Row(
-                                modifier = Modifier.fillMaxWidth().weight(1f),
-                                horizontalArrangement = Arrangement.spacedBy(4.dp)
+                        listOf(DifficultyLevel.EASY, DifficultyLevel.MEDIUM, DifficultyLevel.HARD).forEach { difficulty ->
+                            FilterChip(
+                                selected = uiState.difficulty == difficulty,
+                                onClick = { viewModel.onDifficultySelected(difficulty) },
+                                label = { Text(difficulty.name, fontWeight = FontWeight.Bold) },
+                                colors = FilterChipDefaults.filterChipColors(
+                                    selectedContainerColor = AccentYellow,
+                                    selectedLabelColor = NavyBackground,
+                                    containerColor = NavySurface,
+                                    labelColor = TextSecondary
+                                )
+                            )
+                        }
+                    }
+
+                    // Header Info Bar
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 8.dp, vertical = 4.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "Mistakes: ${uiState.mistakes}/3",
+                            color = AccentCyan,
+                            fontWeight = FontWeight.Bold,
+                            style = MaterialTheme.typography.titleMedium
+                        )
+
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = stringResource(R.string.sudoku_score, uiState.score),
+                                color = TextPrimary,
+                                fontWeight = FontWeight.SemiBold
+                            )
+
+                            // Hint Button (Ad Rewarded)
+                            IconButton(
+                                onClick = {
+                                    if (context is Activity) {
+                                        viewModel.onUseHintWithReward(context)
+                                    }
+                                }
                             ) {
-                                repeat(6) { col ->
-                                    val index = row * 6 + col
-                                    SudokuCell(
-                                        row = row,
-                                        col = col,
-                                        value = values[index],
-                                        isGiven = index in puzzle.givens,
-                                        isSelected = selectedIndex == index,
-                                        onClick = { selectedIndex = index },
-                                        modifier = Modifier.weight(1f).fillMaxSize()
-                                    )
+                                Icon(
+                                    imageVector = Icons.Default.Lightbulb,
+                                    contentDescription = stringResource(R.string.sudoku_hint),
+                                    tint = AccentYellow
+                                )
+                            }
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(10.dp))
+
+                    // 6x6 Sudoku Board
+                    PuzzivoCard(
+                        backgroundColor = NavySurfaceVariant,
+                        borderColor = CardBorderColor,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .aspectRatio(1f)
+                    ) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(6.dp),
+                            verticalArrangement = Arrangement.spacedBy(3.dp)
+                        ) {
+                            repeat(6) { row ->
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .weight(1f),
+                                    horizontalArrangement = Arrangement.spacedBy(3.dp)
+                                ) {
+                                    repeat(6) { col ->
+                                        val index = row * 6 + col
+                                        val value = uiState.values.getOrElse(index) { 0 }
+                                        val isGiven = index in uiState.puzzle.givens
+                                        val isSelected = uiState.selectedIndex == index
+
+                                        Surface(
+                                            color = when {
+                                                isSelected -> AccentYellow.copy(alpha = 0.3f)
+                                                isGiven -> NavySurfaceVariant
+                                                else -> NavySurface
+                                            },
+                                            shape = RoundedCornerShape(6.dp),
+                                            border = BorderStroke(if (isSelected) 2.dp else 1.dp, if (isSelected) AccentYellow else CardBorderColor),
+                                            onClick = { viewModel.onCellSelect(index) },
+                                            modifier = Modifier
+                                                .weight(1f)
+                                                .fillMaxSize()
+                                                .semantics {
+                                                    contentDescription = "Sudoku cell row ${row + 1}, column ${col + 1}"
+                                                    role = Role.Button
+                                                }
+                                        ) {
+                                            Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
+                                                Text(
+                                                    text = if (value > 0) value.toString() else "",
+                                                    color = if (isGiven) TextPrimary else AccentGreen,
+                                                    fontWeight = FontWeight.Bold,
+                                                    fontSize = 20.sp
+                                                )
+                                            }
+                                        }
+                                    }
                                 }
                             }
                         }
                     }
-                }
 
-                Spacer(modifier = Modifier.height(14.dp))
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    (1..6).forEach { value ->
-                        NumberButton(number = value, onClick = { fill(value) })
+                    Spacer(modifier = Modifier.height(14.dp))
+
+                    // Number Keypad (1 - 6) + Erase
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        for (digit in 1..6) {
+                            SecondaryButton(
+                                text = digit.toString(),
+                                onClick = { viewModel.onNumberFill(digit) },
+                                modifier = Modifier.weight(1f)
+                            )
+                        }
+                        SecondaryButton(
+                            text = "✕",
+                            onClick = { viewModel.onNumberFill(0) },
+                            modifier = Modifier.weight(1f)
+                        )
                     }
                 }
-                Spacer(modifier = Modifier.height(10.dp))
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    SecondaryButton(
-                        text = stringResource(R.string.sudoku_clear),
-                        onClick = {
-                            val index = selectedIndex
-                            if (index != null && index !in puzzle.givens) {
-                                values = values.toMutableList().also { it[index] = 0 }
-                            }
-                        },
-                        modifier = Modifier.weight(1f)
-                    )
-                    PrimaryButton(
-                        text = stringResource(R.string.sudoku_hint),
-                        onClick = ::applyHint,
-                        modifier = Modifier.weight(1f)
-                    )
-                }
-                Spacer(modifier = Modifier.height(10.dp))
-                SecondaryButton(text = stringResource(R.string.sudoku_new_puzzle), onClick = ::resetPuzzle)
+            }
+
+            if (uiState.isWon) {
+                ConfettiParticleOverlay()
             }
         }
     }
 
-    if (showHelp) {
+    if (shouldShowInstructions || showHelpDialog) {
         InstructionDialog(
             title = stringResource(R.string.sudoku_title),
             description = stringResource(R.string.sudoku_rules),
-            onDismiss = { showHelp = false }
+            onDismiss = {
+                showHelpDialog = false
+                viewModel.onInstructionsDismissed()
+            }
         )
     }
-    if (showResult) {
+
+    if (uiState.isWon) {
         ResultDialog(
             title = stringResource(R.string.sudoku_complete),
-            scoreText = stringResource(R.string.sudoku_mistakes, mistakes),
-            isNewBest = false,
-            bestScoreText = stringResource(R.string.sudoku_complete),
-            onReplayClick = ::resetPuzzle,
+            scoreText = stringResource(R.string.sudoku_score, uiState.score),
+            isNewBest = uiState.score > 0,
+            bestScoreText = stringResource(R.string.sudoku_score, uiState.score),
+            onReplayClick = { viewModel.onRestart() },
             onHomeClick = onBackClick
         )
-    }
-}
-
-@Composable
-private fun SudokuCell(
-    row: Int,
-    col: Int,
-    value: Int,
-    isGiven: Boolean,
-    isSelected: Boolean,
-    onClick: () -> Unit,
-    modifier: Modifier
-) {
-    val description = if (value == 0) {
-        stringResource(R.string.sudoku_cell, row + 1, col + 1, stringResource(R.string.sudoku_empty))
-    } else {
-        stringResource(R.string.sudoku_cell, row + 1, col + 1, stringResource(R.string.sudoku_filled, value))
-    }
-    Surface(
-        color = when {
-            isSelected -> AccentYellow.copy(alpha = 0.5f)
-            isGiven -> NavySurfaceVariant
-            value != 0 -> AccentGreen.copy(alpha = 0.22f)
-            else -> NavySurface
-        },
-        shape = RoundedCornerShape(5.dp),
-        border = BorderStroke(1.dp, if (isSelected) AccentYellow else CardBorderColor),
-        onClick = onClick,
-        modifier = modifier.semantics {
-            contentDescription = description
-            role = Role.Button
-        }
-    ) {
-        Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
-            Text(
-                text = if (value == 0) "" else value.toString(),
-                color = if (isSelected) NavyBackground else TextPrimary,
-                fontWeight = if (isGiven) FontWeight.Bold else FontWeight.SemiBold,
-                fontSize = 20.sp
-            )
-        }
-    }
-}
-
-@Composable
-private fun NumberButton(number: Int, onClick: () -> Unit) {
-    Surface(
-        color = NavySurface,
-        shape = RoundedCornerShape(8.dp),
-        border = BorderStroke(1.dp, CardBorderColor),
-        onClick = onClick,
-        modifier = Modifier.size(44.dp)
-    ) {
-        Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
-            Text(text = number.toString(), color = TextPrimary, fontWeight = FontWeight.Bold)
-        }
     }
 }

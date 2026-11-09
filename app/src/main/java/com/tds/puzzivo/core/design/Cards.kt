@@ -7,6 +7,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -37,6 +38,28 @@ import com.tds.puzzivo.core.model.DifficultyLevel
 import com.tds.puzzivo.core.model.GameStatistics
 import com.tds.puzzivo.core.model.GameTheme
 import com.tds.puzzivo.core.util.formatTime
+
+@Composable
+fun PuzzivoCard(
+    modifier: Modifier = Modifier,
+    backgroundColor: Color = NavySurface,
+    borderColor: Color = CardBorderColor,
+    onClick: (() -> Unit)? = null,
+    content: @Composable ColumnScope.() -> Unit
+) {
+    Surface(
+        color = backgroundColor,
+        shape = RoundedCornerShape(16.dp),
+        border = BorderStroke(1.dp, borderColor),
+        onClick = onClick ?: {},
+        enabled = onClick != null,
+        modifier = modifier
+    ) {
+        Column(modifier = Modifier.fillMaxWidth()) {
+            content()
+        }
+    }
+}
 
 /**
  * Card displaying achievement details in Puzzivo Dark Theme
@@ -103,39 +126,33 @@ fun AchievementCard(
 
                 Text(
                     text = stringResource(achievement.descriptionRes),
-                    style = MaterialTheme.typography.bodyMedium,
+                    style = MaterialTheme.typography.bodySmall,
                     color = TextSecondary
                 )
 
-                if (!isLocked && achievement.unlockedDate != null) {
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text(
-                        text = "Unlocked ${achievement.unlockedDate}",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = AccentGreen,
-                        fontWeight = FontWeight.SemiBold
-                    )
-                }
-
-                // Progress bar for achievements with progress tracking
-                if (isLocked && achievement.requirement > 1) {
+                if (isLocked) {
                     Spacer(modifier = Modifier.height(8.dp))
-                    val progressRatio = (achievement.progress.toFloat() / achievement.requirement).coerceIn(0f, 1f)
                     LinearProgressIndicator(
-                        progress = { progressRatio },
+                        progress = { achievement.progress.toFloat() / achievement.requirement.toFloat() },
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(6.dp)
                             .clip(RoundedCornerShape(3.dp)),
-                        color = AccentYellow,
-                        trackColor = NavySurfaceVariant
+                        color = rarityColor,
+                        trackColor = NavySurfaceVariant,
                     )
-                    Spacer(modifier = Modifier.height(2.dp))
-                    Text(
-                        text = "${achievement.progress} / ${achievement.requirement}",
-                        fontSize = 11.sp,
-                        color = TextSecondary
-                    )
+                } else if (achievement.coinReward > 0 || achievement.xpReward > 0) {
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        if (achievement.coinReward > 0) {
+                            RewardBadge(icon = "🪙", label = "+${achievement.coinReward}")
+                        }
+                        if (achievement.xpReward > 0) {
+                            RewardBadge(icon = "⭐", label = "+${achievement.xpReward} XP")
+                        }
+                    }
                 }
             }
         }
@@ -143,90 +160,86 @@ fun AchievementCard(
 }
 
 /**
- * Card displaying daily challenge
+ * Card displaying daily challenge status
  */
 @Composable
 fun ChallengeCard(
+    modifier: Modifier = Modifier,
     challenge: DailyChallenge,
-    onStart: () -> Unit,
-    modifier: Modifier = Modifier
+    onStart: () -> Unit = {}
 ) {
+    val isCompleted = challenge.isCompleted
+
     PuzzivoCard(
         modifier = modifier.fillMaxWidth(),
         backgroundColor = NavySurface,
-        borderColor = if (challenge.isCompleted) AccentGreen else CardBorderColor
+        borderColor = if (isCompleted) AccentGreen else AccentYellow,
+        onClick = if (isCompleted) null else onStart
     ) {
-        Column(
-            modifier = Modifier.padding(16.dp)
+        Row(
+            modifier = Modifier.padding(16.dp),
+            horizontalArrangement = Arrangement.spacedBy(14.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Row(
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.fillMaxWidth()
+            Box(
+                modifier = Modifier
+                    .size(52.dp)
+                    .background(
+                        color = if (isCompleted) AccentGreen.copy(alpha = 0.2f) else AccentYellow.copy(alpha = 0.2f),
+                        shape = RoundedCornerShape(12.dp)
+                    )
+                    .border(
+                        width = 1.dp,
+                        color = if (isCompleted) AccentGreen else AccentYellow,
+                        shape = RoundedCornerShape(12.dp)
+                    ),
+                contentAlignment = Alignment.Center
             ) {
+                Text(
+                    text = if (isCompleted) "✅" else "🎯",
+                    fontSize = 24.sp
+                )
+            }
+
+            Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = "Daily Challenge",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
                     color = TextPrimary
                 )
-                Surface(
-                    color = AccentYellow.copy(alpha = 0.2f),
-                    shape = RoundedCornerShape(12.dp),
-                    border = BorderStroke(1.dp, AccentYellow)
-                ) {
-                    Text(
-                        text = challenge.gameType.name.replace('_', ' '),
-                        color = AccentYellow,
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)
-                    )
-                }
-            }
 
-            Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(4.dp))
 
-            Text(
-                text = stringResource(challenge.descriptionRes),
-                style = MaterialTheme.typography.bodyLarge,
-                fontWeight = FontWeight.SemiBold,
-                color = TextPrimary
-            )
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            // Rewards
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                RewardBadge(icon = "⭐", label = "+${challenge.rewardXP} XP")
-                RewardBadge(icon = "🪙", label = "+${challenge.rewardCoins} Coins")
-            }
-
-            Spacer(modifier = Modifier.height(14.dp))
-
-            if (challenge.isCompleted) {
-                Surface(
-                    color = AccentGreen.copy(alpha = 0.2f),
-                    shape = RoundedCornerShape(10.dp),
-                    border = BorderStroke(1.dp, AccentGreen),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text(
-                        text = "✅ Challenge Completed",
-                        color = AccentGreen,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 14.sp,
-                        modifier = Modifier.padding(vertical = 10.dp),
-                        textAlign = androidx.compose.ui.text.style.TextAlign.Center
-                    )
-                }
-            } else {
-                PrimaryButton(
-                    text = "Start Challenge",
-                    onClick = onStart
+                Text(
+                    text = stringResource(challenge.descriptionRes),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = TextSecondary
                 )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "${challenge.progress} / ${challenge.requirement}",
+                        style = MaterialTheme.typography.bodySmall,
+                        fontWeight = FontWeight.Bold,
+                        color = if (isCompleted) AccentGreen else AccentYellow
+                    )
+
+                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        if (challenge.rewardCoins > 0) {
+                            RewardBadge(icon = "🪙", label = "+${challenge.rewardCoins}")
+                        }
+                        if (challenge.rewardXP > 0) {
+                            RewardBadge(icon = "⭐", label = "+${challenge.rewardXP} XP")
+                        }
+                    }
+                }
             }
         }
     }
@@ -237,8 +250,8 @@ fun ChallengeCard(
  */
 @Composable
 fun StatisticsCard(
-    statistics: GameStatistics,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    statistics: GameStatistics
 ) {
     PuzzivoCard(
         modifier = modifier.fillMaxWidth(),
@@ -249,49 +262,32 @@ fun StatisticsCard(
             modifier = Modifier.padding(16.dp)
         ) {
             Row(
-                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
-                modifier = Modifier.fillMaxWidth()
+                verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = statistics.gameType.name.replace('_', ' '),
+                    text = statistics.gameType.name.replace("_", " ").uppercase(),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
                     color = TextPrimary
                 )
                 Surface(
-                    color = AccentCyan.copy(alpha = 0.2f),
-                    shape = RoundedCornerShape(12.dp),
-                    border = BorderStroke(1.dp, AccentCyan)
+                    color = NavySurfaceVariant,
+                    shape = RoundedCornerShape(8.dp),
+                    border = BorderStroke(1.dp, CardBorderColor)
                 ) {
                     Text(
-                        text = "${statistics.totalPlays} Games",
-                        color = AccentCyan,
-                        fontSize = 11.sp,
+                        text = "Wins: ${statistics.totalWins}/${statistics.totalPlays}",
+                        style = MaterialTheme.typography.bodySmall,
                         fontWeight = FontWeight.Bold,
-                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)
+                        color = AccentGreen,
+                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
                     )
                 }
             }
 
             Spacer(modifier = Modifier.height(14.dp))
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                StatItem(label = "Played", value = statistics.totalPlays.toString(), accentColor = TextPrimary)
-                StatItem(label = "Won", value = statistics.totalWins.toString(), accentColor = AccentGreen)
-                StatItem(
-                    label = "Win Rate",
-                    value = if (statistics.totalPlays > 0)
-                        "${kotlin.math.round(statistics.totalWins * 100.0 / statistics.totalPlays).toInt()}%"
-                    else "0%",
-                    accentColor = AccentYellow
-                )
-            }
-
-            Spacer(modifier = Modifier.height(12.dp))
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -463,5 +459,3 @@ private fun RewardBadge(
         }
     }
 }
-
-

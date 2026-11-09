@@ -1,20 +1,53 @@
 package com.tds.puzzivo.feature.shop
 
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.tds.puzzivo.core.design.*
+import com.tds.puzzivo.core.design.AccentCyan
+import com.tds.puzzivo.core.design.AccentGreen
+import com.tds.puzzivo.core.design.AccentYellow
+import com.tds.puzzivo.core.design.CardBorderColor
+import com.tds.puzzivo.core.design.NavyBackground
+import com.tds.puzzivo.core.design.NavySurface
+import com.tds.puzzivo.core.design.NavySurfaceVariant
+import com.tds.puzzivo.core.design.PuzzivoCard
+import com.tds.puzzivo.core.design.PuzzivoTopBar
+import com.tds.puzzivo.core.design.TextPrimary
+import com.tds.puzzivo.core.design.TextSecondary
 import com.tds.puzzivo.core.model.ShopItem
+import com.tds.puzzivo.core.model.ShopItemType
 
 @Composable
 fun ShopScreen(
@@ -34,11 +67,11 @@ fun ShopScreen(
                 onBackClick = onNavigateBack
             )
 
-            // Currency status bar
+            // Currency Status Bar
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(16.dp),
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 Surface(
@@ -80,6 +113,28 @@ fun ShopScreen(
                 }
             }
 
+            // Category Filter Chips
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 4.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                ShopCategory.entries.forEach { category ->
+                    FilterChip(
+                        selected = uiState.selectedCategory == category,
+                        onClick = { viewModel.onCategorySelected(category) },
+                        label = { Text(category.name, fontWeight = FontWeight.Bold) },
+                        colors = FilterChipDefaults.filterChipColors(
+                            selectedContainerColor = AccentYellow,
+                            selectedLabelColor = NavyBackground,
+                            containerColor = NavySurface,
+                            labelColor = TextSecondary
+                        )
+                    )
+                }
+            }
+
             snackbarMessage?.let { msg ->
                 Surface(
                     color = NavySurfaceVariant,
@@ -87,17 +142,16 @@ fun ShopScreen(
                     border = BorderStroke(1.dp, AccentGreen),
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 16.dp)
+                        .padding(horizontal = 16.dp, vertical = 4.dp)
                 ) {
                     Text(
                         text = msg,
                         color = AccentGreen,
                         fontWeight = FontWeight.Bold,
-                        modifier = Modifier.padding(12.dp),
+                        modifier = Modifier.padding(10.dp),
                         textAlign = androidx.compose.ui.text.style.TextAlign.Center
                     )
                 }
-                Spacer(modifier = Modifier.height(8.dp))
             }
 
             LazyColumn(
@@ -120,15 +174,16 @@ fun ShopScreen(
                             ) {
                                 Text("🛍️", fontSize = 36.sp)
                                 Spacer(modifier = Modifier.height(12.dp))
-                                Text("Shop Items Coming Soon", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = TextPrimary)
-                                Text("Check back later for booster packs and exclusive themes!", style = MaterialTheme.typography.bodyMedium, color = TextSecondary, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
+                                Text("No Items Found", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = TextPrimary)
                             }
                         }
                     }
                 } else {
                     items(uiState.shopItems, key = { it.id }) { item ->
+                        val isOwned = item.type == ShopItemType.THEME && uiState.playerProgress.unlockedThemes.contains(item.id)
                         ShopItemCard(
                             item = item,
+                            isOwned = isOwned,
                             onBuy = {
                                 viewModel.buyItem(item) { _, msg ->
                                     snackbarMessage = msg
@@ -145,8 +200,18 @@ fun ShopScreen(
 @Composable
 private fun ShopItemCard(
     item: ShopItem,
+    isOwned: Boolean,
     onBuy: () -> Unit
 ) {
+    val itemIcon = when (item.type) {
+        ShopItemType.THEME -> "🎨"
+        ShopItemType.HINT_PACK -> "💡"
+        ShopItemType.UNDO_PACK -> "↩️"
+        ShopItemType.TIME_BOOST -> "⏳"
+        ShopItemType.DOUBLE_COINS -> "⚡"
+        else -> "🎁"
+    }
+
     PuzzivoCard(
         backgroundColor = NavySurface,
         borderColor = CardBorderColor,
@@ -166,20 +231,20 @@ private fun ShopItemCard(
                 modifier = Modifier.size(52.dp)
             ) {
                 Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
-                    Text("🎁", fontSize = 26.sp)
+                    Text(itemIcon, fontSize = 26.sp)
                 }
             }
 
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = item.id.replace("_", " ").uppercase(),
+                    text = stringResource(item.nameRes),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
                     color = TextPrimary
                 )
                 Spacer(modifier = Modifier.height(2.dp))
                 Text(
-                    text = "Quantity: ${item.quantity}",
+                    text = stringResource(item.descriptionRes),
                     style = MaterialTheme.typography.bodySmall,
                     color = TextSecondary
                 )
@@ -187,14 +252,19 @@ private fun ShopItemCard(
 
             Button(
                 onClick = onBuy,
+                enabled = !isOwned,
                 shape = RoundedCornerShape(10.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = if (item.priceGems > 0) AccentCyan else AccentYellow,
-                    contentColor = NavyBackground
+                    containerColor = if (isOwned) NavySurfaceVariant else if (item.priceGems > 0) AccentCyan else AccentYellow,
+                    contentColor = if (isOwned) TextSecondary else NavyBackground
                 )
             ) {
                 Text(
-                    text = if (item.priceGems > 0) "💎 ${item.priceGems}" else "🪙 ${item.priceCoins}",
+                    text = when {
+                        isOwned -> "OWNED"
+                        item.priceGems > 0 -> "💎 ${item.priceGems}"
+                        else -> "🪙 ${item.priceCoins}"
+                    },
                     fontWeight = FontWeight.Bold
                 )
             }

@@ -6,12 +6,14 @@ import androidx.datastore.core.handlers.ReplaceFileCorruptionHandler
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.floatPreferencesKey
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.tds.puzzivo.core.model.GameType
 import com.tds.puzzivo.core.model.DifficultyLevel
+import com.tds.puzzivo.core.model.GameMode
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
@@ -29,6 +31,7 @@ data class UserPreferences(
     val memoryMatchBestMoves: Int = 0,
     val memoryMatchBestTime: Int = 0,
     val quickMathBestScore: Int = 0,
+    val wordScrambleBestScore: Int = 0,
     val wordSearchCurrentIndex: Int = 0,
     val wordSearchCompletedIndex: Int = 0,
     val wordSearchSolvedIds: Set<String> = emptySet(),
@@ -42,6 +45,8 @@ data class UserPreferences(
     val lastStreakDate: String = "",
     val totalGamesPlayed: Int = 0,
     val selectedDifficulty: DifficultyLevel = DifficultyLevel.MEDIUM,
+    val selectedGameMode: GameMode = GameMode.CLASSIC,
+    val textScaleFactor: Float = 1.0f,
     val loginBonusDay: Int = 1,
     val lastLoginBonusClaimDate: String = "",
     val lastSpinWheelClaimDate: String = ""
@@ -57,6 +62,7 @@ class PreferencesRepository(
         val MEMORY_MATCH_BEST_MOVES = intPreferencesKey("memory_match_best_moves")
         val MEMORY_MATCH_BEST_TIME = intPreferencesKey("memory_match_best_time")
         val QUICK_MATH_BEST_SCORE = intPreferencesKey("quick_math_best_score")
+        val WORD_SCRAMBLE_BEST_SCORE = intPreferencesKey("word_scramble_best_score")
         val WORD_SEARCH_CURRENT_INDEX = intPreferencesKey("word_search_current_index")
         val WORD_SEARCH_COMPLETED_INDEX = intPreferencesKey("word_search_completed_index")
         val WORD_SEARCH_SOLVED_IDS = stringSetPreferencesKey("word_search_solved_ids")
@@ -70,6 +76,8 @@ class PreferencesRepository(
         val LAST_STREAK_DATE = stringPreferencesKey("last_streak_date")
         val TOTAL_GAMES_PLAYED = intPreferencesKey("total_games_played")
         val SELECTED_DIFFICULTY = stringPreferencesKey("selected_difficulty")
+        val SELECTED_GAME_MODE = stringPreferencesKey("selected_game_mode")
+        val TEXT_SCALE_FACTOR = floatPreferencesKey("text_scale_factor")
         val LOGIN_BONUS_DAY = intPreferencesKey("login_bonus_day")
         val LAST_LOGIN_BONUS_CLAIM_DATE = stringPreferencesKey("last_login_bonus_claim_date")
         val LAST_SPIN_WHEEL_CLAIM_DATE = stringPreferencesKey("last_spin_wheel_claim_date")
@@ -92,11 +100,18 @@ class PreferencesRepository(
             DifficultyLevel.valueOf(prefs[Keys.SELECTED_DIFFICULTY] ?: DifficultyLevel.MEDIUM.name)
         }.getOrDefault(DifficultyLevel.MEDIUM)
 
+        val selectedGameMode = runCatching {
+            GameMode.valueOf(prefs[Keys.SELECTED_GAME_MODE] ?: GameMode.CLASSIC.name)
+        }.getOrDefault(GameMode.CLASSIC)
+
+        val textScaleFactor = (prefs[Keys.TEXT_SCALE_FACTOR] ?: 1.0f).coerceIn(0.8f, 1.5f)
+
         UserPreferences(
             numberMergeBestScore = (prefs[Keys.NUMBER_MERGE_BEST_SCORE] ?: 0).coerceAtLeast(0),
             memoryMatchBestMoves = (prefs[Keys.MEMORY_MATCH_BEST_MOVES] ?: 0).coerceAtLeast(0),
             memoryMatchBestTime = (prefs[Keys.MEMORY_MATCH_BEST_TIME] ?: 0).coerceAtLeast(0),
             quickMathBestScore = (prefs[Keys.QUICK_MATH_BEST_SCORE] ?: 0).coerceAtLeast(0),
+            wordScrambleBestScore = (prefs[Keys.WORD_SCRAMBLE_BEST_SCORE] ?: 0).coerceAtLeast(0),
             wordSearchCurrentIndex = (prefs[Keys.WORD_SEARCH_CURRENT_INDEX] ?: 0).coerceAtLeast(0),
             wordSearchCompletedIndex = (prefs[Keys.WORD_SEARCH_COMPLETED_INDEX] ?: 0).coerceAtLeast(0),
             wordSearchSolvedIds = prefs[Keys.WORD_SEARCH_SOLVED_IDS] ?: emptySet(),
@@ -110,6 +125,8 @@ class PreferencesRepository(
             lastStreakDate = lastStreakDate,
             totalGamesPlayed = (prefs[Keys.TOTAL_GAMES_PLAYED] ?: 0).coerceAtLeast(0),
             selectedDifficulty = selectedDifficulty,
+            selectedGameMode = selectedGameMode,
+            textScaleFactor = textScaleFactor,
             loginBonusDay = (prefs[Keys.LOGIN_BONUS_DAY] ?: 1).coerceIn(1, 7),
             lastLoginBonusClaimDate = prefs[Keys.LAST_LOGIN_BONUS_CLAIM_DATE] ?: "",
             lastSpinWheelClaimDate = prefs[Keys.LAST_SPIN_WHEEL_CLAIM_DATE] ?: ""
@@ -147,6 +164,15 @@ class PreferencesRepository(
             val current = prefs[Keys.QUICK_MATH_BEST_SCORE] ?: 0
             if (score > current) {
                 prefs[Keys.QUICK_MATH_BEST_SCORE] = score
+            }
+        }
+    }
+
+    suspend fun saveWordScrambleBestScore(score: Int) {
+        context.dataStore.edit { prefs ->
+            val current = prefs[Keys.WORD_SCRAMBLE_BEST_SCORE] ?: 0
+            if (score > current) {
+                prefs[Keys.WORD_SCRAMBLE_BEST_SCORE] = score
             }
         }
     }
@@ -197,29 +223,38 @@ class PreferencesRepository(
         }
     }
 
+    suspend fun setSelectedGameMode(mode: GameMode) {
+        context.dataStore.edit { prefs ->
+            prefs[Keys.SELECTED_GAME_MODE] = mode.name
+        }
+    }
+
+    suspend fun setTextScaleFactor(scale: Float) {
+        context.dataStore.edit { prefs ->
+            prefs[Keys.TEXT_SCALE_FACTOR] = scale.coerceIn(0.8f, 1.5f)
+        }
+    }
+
     suspend fun recordGameCompleted(playedGameType: GameType) {
         val today = LocalDate.now(clock).toString()
         val yesterday = LocalDate.now(clock).minusDays(1).toString()
 
         context.dataStore.edit { prefs ->
-            // Increment total games
             val total = prefs[Keys.TOTAL_GAMES_PLAYED] ?: 0
             prefs[Keys.TOTAL_GAMES_PLAYED] = (total + 1).coerceAtLeast(0)
 
-            // Only completing the selected daily game completes Today's Pick and advances the streak.
             val todayPickGame = getTodayPickGameType(LocalDate.now(clock))
             if (playedGameType != todayPickGame) return@edit
 
             prefs[Keys.TODAY_PICK_LAST_DATE] = today
             prefs[Keys.TODAY_PICK_COMPLETED] = true
 
-            // Streak calculation
             val lastStreakDate = prefs[Keys.LAST_STREAK_DATE] ?: ""
             var currentStreak = prefs[Keys.CURRENT_STREAK] ?: 0
             var bestStreak = prefs[Keys.BEST_STREAK] ?: 0
 
             if (lastStreakDate == today) {
-                // Already recorded today's streak
+                // Already recorded today
             } else if (lastStreakDate == yesterday) {
                 currentStreak += 1
                 prefs[Keys.CURRENT_STREAK] = currentStreak
@@ -228,7 +263,6 @@ class PreferencesRepository(
                     prefs[Keys.BEST_STREAK] = currentStreak
                 }
             } else {
-                // Streak broken or brand new
                 currentStreak = 1
                 prefs[Keys.CURRENT_STREAK] = currentStreak
                 prefs[Keys.LAST_STREAK_DATE] = today

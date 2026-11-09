@@ -1,5 +1,6 @@
 package com.tds.puzzivo.feature.minesweeper
 
+import android.app.Activity
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -12,17 +13,24 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Lightbulb
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.Saver
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
@@ -32,11 +40,13 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.tds.puzzivo.R
 import com.tds.puzzivo.core.design.AccentGreen
 import com.tds.puzzivo.core.design.AccentMagenta
 import com.tds.puzzivo.core.design.AccentYellow
 import com.tds.puzzivo.core.design.CardBorderColor
+import com.tds.puzzivo.core.design.ConfettiParticleOverlay
 import com.tds.puzzivo.core.design.InstructionDialog
 import com.tds.puzzivo.core.design.NavyBackground
 import com.tds.puzzivo.core.design.NavySurface
@@ -44,216 +54,192 @@ import com.tds.puzzivo.core.design.NavySurfaceVariant
 import com.tds.puzzivo.core.design.PrimaryButton
 import com.tds.puzzivo.core.design.PuzzivoCard
 import com.tds.puzzivo.core.design.PuzzivoTopBar
-import com.tds.puzzivo.core.design.RecordGameCompletionEffect
-import com.tds.puzzivo.core.design.TrackGameStartEffect
 import com.tds.puzzivo.core.design.ResultDialog
 import com.tds.puzzivo.core.design.SecondaryButton
-
-private const val BOARD_SIZE = 6
-private const val MINE_COUNT = 8
-
-private data class MineCell(
-    val mine: Boolean,
-    val adjacent: Int,
-    val revealed: Boolean = false,
-    val flagged: Boolean = false
-)
-
-private data class MineBoard(
-    val cells: List<MineCell>,
-    val gameOver: Boolean = false,
-    val won: Boolean = false
-) {
-    companion object {
-        fun create(): MineBoard {
-            val allIndices = (0 until BOARD_SIZE * BOARD_SIZE).toList()
-            val mineIndices = allIndices.shuffled().take(MINE_COUNT).toSet()
-            val cells = allIndices.map { index ->
-                MineCell(mine = index in mineIndices, adjacent = countAdjacent(index, mineIndices))
-            }
-            return MineBoard(cells)
-        }
-
-        private fun countAdjacent(index: Int, mines: Set<Int>): Int {
-            val row = index / BOARD_SIZE
-            val col = index % BOARD_SIZE
-            var count = 0
-            for (dr in -1..1) for (dc in -1..1) {
-                if (dr == 0 && dc == 0) continue
-                val r = row + dr
-                val c = col + dc
-                if (r in 0 until BOARD_SIZE && c in 0 until BOARD_SIZE && r * BOARD_SIZE + c in mines) count++
-            }
-            return count
-        }
-    }
-}
-
-private val mineBoardSaver = Saver<MineBoard, String>(
-    save = { board ->
-        val cellState = board.cells.joinToString(separator = "") { cell ->
-            when {
-                cell.revealed -> "1"
-                cell.flagged -> "2"
-                else -> "0"
-            }
-        }
-        "${if (board.gameOver) 1 else 0}|${if (board.won) 1 else 0}|$cellState"
-    },
-    restore = ::restoreMineBoard
-)
-
-private fun restoreMineBoard(encoded: String): MineBoard {
-    val parts = encoded.split('|')
-    val initial = MineBoard.create()
-    val cellState = parts.getOrNull(2) ?: return initial
-    if (cellState.length != initial.cells.size) return initial
-
-    return initial.copy(
-        cells = initial.cells.mapIndexed { index, cell ->
-            when (cellState[index]) {
-                '1' -> cell.copy(revealed = true)
-                '2' -> cell.copy(flagged = true)
-                else -> cell
-            }
-        },
-        gameOver = parts.getOrNull(0) == "1",
-        won = parts.getOrNull(1) == "1"
-    )
-}
+import com.tds.puzzivo.core.design.TextPrimary
+import com.tds.puzzivo.core.design.TextSecondary
+import com.tds.puzzivo.core.model.DifficultyLevel
 
 @Composable
-fun MinesweeperScreen(onBackClick: () -> Unit) {
-    var board by rememberSaveable(stateSaver = mineBoardSaver) {
-        mutableStateOf(MineBoard.create())
-    }
-    var flagMode by rememberSaveable { mutableStateOf(false) }
-    var showHelp by remember { mutableStateOf(false) }
-
-    fun reset() {
-        board = MineBoard.create()
-        flagMode = false
-    }
-
-    TrackGameStartEffect(com.tds.puzzivo.core.model.GameType.MINESWEEPER)
-    RecordGameCompletionEffect(
-        gameType = com.tds.puzzivo.core.model.GameType.MINESWEEPER,
-        completed = board.won || board.gameOver,
-        score = board.cells.count { it.revealed && !it.mine } * 10,
-        won = board.won,
-        moves = board.cells.count { it.revealed }
-    )
+fun MinesweeperScreen(
+    onBackClick: () -> Unit,
+    viewModel: MinesweeperViewModel = hiltViewModel()
+) {
+    val uiState by viewModel.uiState.collectAsState()
+    val shouldShowInstructions by viewModel.shouldShowInstructions.collectAsState()
+    var showHelpDialog by remember { mutableStateOf(false) }
+    val context = LocalContext.current
 
     Surface(color = NavyBackground, modifier = Modifier.fillMaxSize()) {
-        Column(modifier = Modifier.fillMaxSize()) {
-            PuzzivoTopBar(
-                title = stringResource(R.string.minesweeper_title),
-                onBackClick = onBackClick,
-                onActionClick = { showHelp = true },
-                actionContentDescription = stringResource(R.string.action_help)
-            )
-            Column(modifier = Modifier.fillMaxSize().padding(16.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                val flags = board.cells.count { it.flagged }
-                Text(stringResource(R.string.minesweeper_mines_left, MINE_COUNT - flags), color = AccentYellow, fontWeight = FontWeight.Bold)
-                Spacer(modifier = Modifier.height(14.dp))
-                PuzzivoCard(
-                    backgroundColor = NavySurfaceVariant,
-                    borderColor = CardBorderColor,
-                    modifier = Modifier.fillMaxWidth().aspectRatio(1f)
+        Box(modifier = Modifier.fillMaxSize()) {
+            Column(modifier = Modifier.fillMaxSize()) {
+                PuzzivoTopBar(
+                    title = stringResource(R.string.minesweeper_title),
+                    onBackClick = onBackClick,
+                    onActionClick = { showHelpDialog = true },
+                    actionContentDescription = stringResource(R.string.action_help)
+                )
+
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    Column(modifier = Modifier.fillMaxSize().padding(6.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                        repeat(BOARD_SIZE) { row ->
-                            Row(modifier = Modifier.fillMaxWidth().weight(1f), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                                repeat(BOARD_SIZE) { col ->
-                                    val index = row * BOARD_SIZE + col
-                                    val cell = board.cells[index]
-                                    MineCellView(
-                                        row = row,
-                                        col = col,
-                                        cell = cell,
-                                        showMines = board.gameOver,
-                                        onClick = {
-                                            board = if (flagMode) toggleFlag(board, index) else revealCell(board, index)
-                                        },
-                                        modifier = Modifier.weight(1f).fillMaxSize()
-                                    )
+                    // Difficulty Selector
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        modifier = Modifier.padding(bottom = 12.dp)
+                    ) {
+                        listOf(DifficultyLevel.EASY, DifficultyLevel.MEDIUM, DifficultyLevel.HARD).forEach { difficulty ->
+                            FilterChip(
+                                selected = uiState.difficulty == difficulty,
+                                onClick = { viewModel.onDifficultySelected(difficulty) },
+                                label = { Text(difficulty.name, fontWeight = FontWeight.Bold) },
+                                colors = FilterChipDefaults.filterChipColors(
+                                    selectedContainerColor = AccentYellow,
+                                    selectedLabelColor = NavyBackground,
+                                    containerColor = NavySurface,
+                                    labelColor = TextSecondary
+                                )
+                            )
+                        }
+                    }
+
+                    // Header Info Bar (Mines Left & Safe Reveal Hint)
+                    val flagsCount = uiState.cells.count { it.flagged }
+                    val minesLeft = (uiState.totalMines - flagsCount).coerceAtLeast(0)
+
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 8.dp, vertical = 4.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = stringResource(R.string.minesweeper_mines_left, minesLeft),
+                            color = AccentYellow,
+                            fontWeight = FontWeight.Bold,
+                            style = MaterialTheme.typography.titleMedium
+                        )
+
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = "Score: ${uiState.score}",
+                                color = TextPrimary,
+                                fontWeight = FontWeight.SemiBold
+                            )
+
+                            // Safe Reveal Hint Button (Ad Rewarded)
+                            IconButton(
+                                onClick = {
+                                    if (context is Activity) {
+                                        viewModel.onUseSafeRevealWithReward(context)
+                                    }
+                                }
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Lightbulb,
+                                    contentDescription = "Safe Reveal Hint",
+                                    tint = AccentYellow
+                                )
+                            }
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(14.dp))
+
+                    PuzzivoCard(
+                        backgroundColor = NavySurfaceVariant,
+                        borderColor = CardBorderColor,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .aspectRatio(1f)
+                    ) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(6.dp),
+                            verticalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            repeat(uiState.boardSize) { row ->
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .weight(1f),
+                                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                                ) {
+                                    repeat(uiState.boardSize) { col ->
+                                        val index = row * uiState.boardSize + col
+                                        val cell = uiState.cells.getOrElse(index) { MineCell() }
+
+                                        MineCellView(
+                                            row = row,
+                                            col = col,
+                                            cell = cell,
+                                            showMines = uiState.isGameOver,
+                                            onClick = { viewModel.onCellClick(index) },
+                                            modifier = Modifier
+                                                .weight(1f)
+                                                .fillMaxSize()
+                                        )
+                                    }
                                 }
                             }
                         }
                     }
+
+                    Spacer(modifier = Modifier.height(14.dp))
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        SecondaryButton(
+                            text = if (uiState.flagMode) stringResource(R.string.minesweeper_reveal) else stringResource(R.string.minesweeper_flag),
+                            onClick = { viewModel.onToggleFlagMode() },
+                            modifier = Modifier.weight(1f)
+                        )
+                        PrimaryButton(
+                            text = stringResource(R.string.action_restart),
+                            onClick = { viewModel.onRestart() },
+                            modifier = Modifier.weight(1f)
+                        )
+                    }
                 }
-                Spacer(modifier = Modifier.height(14.dp))
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    SecondaryButton(
-                        text = if (flagMode) stringResource(R.string.minesweeper_reveal) else stringResource(R.string.minesweeper_flag),
-                        onClick = { flagMode = !flagMode },
-                        modifier = Modifier.weight(1f)
-                    )
-                    PrimaryButton(text = stringResource(R.string.action_restart), onClick = ::reset, modifier = Modifier.weight(1f))
-                }
+            }
+
+            if (uiState.isWon) {
+                ConfettiParticleOverlay()
             }
         }
     }
 
-    if (showHelp) {
+    if (shouldShowInstructions || showHelpDialog) {
         InstructionDialog(
             title = stringResource(R.string.minesweeper_title),
             description = stringResource(R.string.minesweeper_rules),
-            onDismiss = { showHelp = false }
+            onDismiss = {
+                showHelpDialog = false
+                viewModel.onInstructionsDismissed()
+            }
         )
     }
-    if (board.won || board.gameOver) {
+
+    if (uiState.isWon || uiState.isGameOver) {
         ResultDialog(
-            title = stringResource(if (board.won) R.string.minesweeper_won else R.string.minesweeper_lost),
-            scoreText = stringResource(R.string.minesweeper_mines_left, board.cells.count { it.flagged }),
-            isNewBest = false,
-            bestScoreText = stringResource(R.string.minesweeper_title),
-            onReplayClick = ::reset,
+            title = stringResource(if (uiState.isWon) R.string.minesweeper_won else R.string.minesweeper_lost),
+            scoreText = stringResource(R.string.minesweeper_mines_left, uiState.cells.count { it.flagged }),
+            isNewBest = uiState.isWon && uiState.score > 0,
+            bestScoreText = "Score: ${uiState.score}",
+            onReplayClick = { viewModel.onRestart() },
             onHomeClick = onBackClick
         )
     }
-}
-
-private fun toggleFlag(board: MineBoard, index: Int): MineBoard {
-    if (board.gameOver || board.won) return board
-    val cell = board.cells[index]
-    if (cell.revealed) return board
-    if (!cell.flagged && board.cells.count { it.flagged } >= MINE_COUNT) return board
-    val cells = board.cells.toMutableList()
-    cells[index] = cell.copy(flagged = !cell.flagged)
-    return board.copy(cells = cells)
-}
-
-private fun revealCell(board: MineBoard, index: Int): MineBoard {
-    if (board.gameOver || board.won) return board
-    if (index !in board.cells.indices || board.cells[index].flagged || board.cells[index].revealed) return board
-    val cells = board.cells.toMutableList()
-    if (cells[index].mine) {
-        cells.indices.filter { cells[it].mine }.forEach { mineIndex ->
-            cells[mineIndex] = cells[mineIndex].copy(revealed = true)
-        }
-        return board.copy(cells = cells, gameOver = true)
-    }
-
-    val queue = ArrayDeque<Int>()
-    queue.add(index)
-    while (queue.isNotEmpty()) {
-        val current = queue.removeFirst()
-        if (current !in cells.indices || cells[current].revealed || cells[current].flagged || cells[current].mine) continue
-        cells[current] = cells[current].copy(revealed = true)
-        if (cells[current].adjacent == 0) {
-            val row = current / BOARD_SIZE
-            val col = current % BOARD_SIZE
-            for (dr in -1..1) for (dc in -1..1) {
-                val r = row + dr
-                val c = col + dc
-                if (r in 0 until BOARD_SIZE && c in 0 until BOARD_SIZE) queue.add(r * BOARD_SIZE + c)
-            }
-        }
-    }
-    val safeRevealed = cells.count { it.revealed && !it.mine }
-    val safeTotal = cells.count { !it.mine }
-    return board.copy(cells = cells, won = safeRevealed == safeTotal)
 }
 
 @Composable

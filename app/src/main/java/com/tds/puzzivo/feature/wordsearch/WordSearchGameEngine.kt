@@ -7,7 +7,7 @@ class WordSearchGameEngine {
     var state = WordSearchState()
         private set
 
-    fun loadPuzzle(puzzleIndex: Int = 0) {
+    fun loadPuzzle(puzzleIndex: Int = 0, bestScore: Int = 0) {
         val puzzles = WordSearchRepository.puzzles
         val index = puzzleIndex.coerceIn(puzzles.indices)
         val selectedPuzzle = puzzles[index]
@@ -19,8 +19,12 @@ class WordSearchGameEngine {
             foundCellPositions = emptySet(),
             selectedCells = emptyList(),
             isGameComplete = false,
-            hasUsedHint = false,
-            highlightedHintWord = null
+            hintsUsed = 0,
+            highlightedHintWord = null,
+            highlightedFirstLetterCell = null,
+            score = 0,
+            bestScore = bestScore,
+            timeElapsedSeconds = 0
         )
     }
 
@@ -67,6 +71,10 @@ class WordSearchGameEngine {
             val updatedFoundCells = state.foundCellPositions + selected.toSet()
             val isComplete = updatedFoundWords.size == puzzle.targetWords.size
 
+            val wordScore = matchingWord.word.length * 100
+            val newScore = state.score + wordScore
+            val newBest = maxOf(newScore, state.bestScore)
+
             val updatedHint = if (state.highlightedHintWord?.word == matchingWord.word) {
                 null
             } else {
@@ -78,7 +86,11 @@ class WordSearchGameEngine {
                 foundCellPositions = updatedFoundCells,
                 selectedCells = emptyList(),
                 isGameComplete = isComplete,
-                highlightedHintWord = updatedHint
+                hintsUsed = state.hintsUsed,
+                highlightedHintWord = updatedHint,
+                highlightedFirstLetterCell = null,
+                score = newScore,
+                bestScore = newBest
             )
             return true
         } else {
@@ -87,18 +99,41 @@ class WordSearchGameEngine {
         }
     }
 
+    fun useRevealFirstLetterHint(): Boolean {
+        val puzzle = state.puzzle ?: return false
+        if (state.isGameComplete) return false
+
+        val unfoundTarget = puzzle.targetWords.find { !state.foundWords.contains(it.word) }
+            ?: return false
+
+        if (unfoundTarget.startRow < 0 || unfoundTarget.startCol < 0) return false
+
+        state = state.copy(
+            hintsUsed = state.hintsUsed + 1,
+            highlightedFirstLetterCell = CellPosition(unfoundTarget.startRow, unfoundTarget.startCol)
+        )
+        return true
+    }
+
     fun useRevealWordHint(): Boolean {
         val puzzle = state.puzzle ?: return false
-        if (state.hasUsedHint || state.isGameComplete) return false
+        if (state.isGameComplete) return false
 
         val unfoundTarget = puzzle.targetWords.find { !state.foundWords.contains(it.word) }
             ?: return false
 
         state = state.copy(
-            hasUsedHint = true,
-            highlightedHintWord = unfoundTarget
+            hintsUsed = state.hintsUsed + 1,
+            highlightedHintWord = unfoundTarget,
+            highlightedFirstLetterCell = null
         )
         return true
+    }
+
+    fun tickTimer() {
+        if (!state.isGameComplete) {
+            state = state.copy(timeElapsedSeconds = state.timeElapsedSeconds + 1)
+        }
     }
 
     private fun computeLineCells(
@@ -113,7 +148,6 @@ class WordSearchGameEngine {
         val absDRow = abs(dRow)
         val absDCol = abs(dCol)
 
-        // Must be horizontal, vertical, or 45-degree diagonal
         if (dRow != 0 && dCol != 0 && absDRow != absDCol) {
             return emptyList()
         }
@@ -152,9 +186,6 @@ class WordSearchGameEngine {
     ): Boolean {
         if (selected.size != target.word.length) return false
 
-        // Match the letters the player actually selected. This is important for
-        // words placed from right to left: the board must be read in the same
-        // direction as the user's drag, not inferred only from metadata.
         val selectedWord = selected.joinToString(separator = "") { cell ->
             puzzle.grid[cell.row][cell.col].toString()
         }
@@ -162,11 +193,5 @@ class WordSearchGameEngine {
 
         return selectedWord.equals(targetWord, ignoreCase = true) ||
                 selectedWord.reversed().equals(targetWord, ignoreCase = true)
-    }
-
-    private fun Int.sign(): Int = when {
-        this > 0 -> 1
-        this < 0 -> -1
-        else -> 0
     }
 }

@@ -41,6 +41,7 @@ import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
@@ -52,6 +53,7 @@ import com.tds.puzzivo.core.design.AccentGreen
 import com.tds.puzzivo.core.design.AccentMagenta
 import com.tds.puzzivo.core.design.AccentYellow
 import com.tds.puzzivo.core.design.CardBorderColor
+import com.tds.puzzivo.core.design.ConfettiParticleOverlay
 import com.tds.puzzivo.core.design.ConfirmationDialog
 import com.tds.puzzivo.core.design.InstructionDialog
 import com.tds.puzzivo.core.design.NavyBackground
@@ -91,249 +93,266 @@ fun WordSearchScreen(
         color = NavyBackground,
         modifier = Modifier.fillMaxSize()
     ) {
-        Column(
-            modifier = Modifier.fillMaxSize()
-        ) {
-            PuzzivoTopBar(
-                title = stringResource(R.string.word_search_title),
-                onBackClick = {
-                    if (uiState.foundWords.isNotEmpty() && !uiState.isGameComplete) {
-                        showExitConfirmation = true
-                    } else {
-                        onBackClick()
-                    }
-                },
-                onActionClick = { showInstructions = true },
-                actionContentDescription = stringResource(R.string.action_help)
-            )
-
+        Box(modifier = Modifier.fillMaxSize()) {
             Column(
-                modifier = Modifier
-                    .weight(1f)
-                    .padding(16.dp)
-                    .verticalScroll(rememberScrollState()),
-                horizontalAlignment = Alignment.CenterHorizontally
+                modifier = Modifier.fillMaxSize()
             ) {
-                if (puzzle != null) {
-                    // Puzzle Header
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = "${puzzle.title} • ${puzzle.difficulty}",
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold,
-                            color = AccentYellow
-                        )
-                        Text(
-                            text = pluralStringResource(R.plurals.word_search_words_progress, puzzle.targetWords.size, uiState.foundWords.size, puzzle.targetWords.size),
-                            style = MaterialTheme.typography.bodyMedium,
-                            fontWeight = FontWeight.Bold,
-                            color = AccentGreen
-                        )
-                    }
-
-                    Spacer(modifier = Modifier.height(12.dp))
-
-                    // Target Word List FlowRow
-                    FlowRow(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 4.dp),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        puzzle.targetWords.forEach { targetWord ->
-                            val isFound = uiState.foundWords.contains(targetWord.word)
-                            val isHinted = uiState.highlightedHintWord?.word == targetWord.word
-
-                            val chipBg = when {
-                                isFound -> AccentGreen.copy(alpha = 0.25f)
-                                isHinted -> AccentYellow.copy(alpha = 0.25f)
-                                else -> NavySurface
-                            }
-
-                            val chipBorder = when {
-                                isFound -> AccentGreen
-                                isHinted -> AccentYellow
-                                else -> CardBorderColor
-                            }
-
-                            Surface(
-                                color = chipBg,
-                                shape = RoundedCornerShape(16.dp),
-                                border = BorderStroke(1.dp, chipBorder)
-                            ) {
-                                Text(
-                                    text = targetWord.word,
-                                    fontSize = 13.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = if (isFound) AccentGreen else TextPrimary,
-                                    textDecoration = if (isFound) TextDecoration.LineThrough else TextDecoration.None,
-                                    modifier = Modifier
-                                        .padding(horizontal = 10.dp, vertical = 6.dp)
-                                        .semantics {
-                                            contentDescription = if (isFound) {
-                                                "${targetWord.word}, found"
-                                            } else if (isHinted) {
-                                                "${targetWord.word}, hint highlighted"
-                                            } else {
-                                                "${targetWord.word}, not found"
-                                            }
-                                        }
-                                )
-                            }
+                PuzzivoTopBar(
+                    title = stringResource(R.string.word_search_title),
+                    onBackClick = {
+                        if (uiState.foundWords.isNotEmpty() && !uiState.isGameComplete) {
+                            showExitConfirmation = true
+                        } else {
+                            onBackClick()
                         }
-                    }
+                    },
+                    onActionClick = { showInstructions = true },
+                    actionContentDescription = stringResource(R.string.action_help)
+                )
 
-                    Spacer(modifier = Modifier.height(16.dp))
+                Column(
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(16.dp)
+                        .verticalScroll(rememberScrollState()),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    if (puzzle != null) {
+                        // Puzzle Header
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = "${puzzle.title} • Score: ${uiState.score}",
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = AccentYellow
+                            )
+                            Text(
+                                text = pluralStringResource(R.plurals.word_search_words_progress, puzzle.targetWords.size, uiState.foundWords.size, puzzle.targetWords.size),
+                                style = MaterialTheme.typography.bodyMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = AccentGreen
+                            )
+                        }
 
-                    // Letter Grid with Pointer Input
-                    PuzzivoCard(
-                        backgroundColor = NavySurfaceVariant,
-                        borderColor = CardBorderColor,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .aspectRatio(1f)
-                    ) {
-                        Box(
+                        Spacer(modifier = Modifier.height(12.dp))
+
+                        // Target Word List FlowRow
+                        FlowRow(
                             modifier = Modifier
-                                .fillMaxSize()
-                                .padding(8.dp)
-                                .pointerInput(puzzle) {
-                                    detectDragGestures(
-                                        onDragStart = { offset ->
-                                            if (size.width > 0 && size.height > 0) {
-                                                val cellWidth = size.width / puzzle.cols
-                                                val cellHeight = size.height / puzzle.rows
-                                                val col = (offset.x / cellWidth).toInt().coerceIn(0, puzzle.cols - 1)
-                                                val row = (offset.y / cellHeight).toInt().coerceIn(0, puzzle.rows - 1)
-                                                viewModel.onCellTouchStart(row, col)
-                                            }
-                                        },
-                                        onDragEnd = {
-                                            viewModel.onCellTouchEnd()
-                                        },
-                                        onDragCancel = {
-                                            viewModel.onCellTouchEnd()
-                                        },
-                                        onDrag = { change, _ ->
-                                            change.consume()
-                                            if (size.width > 0 && size.height > 0) {
-                                                val cellWidth = size.width / puzzle.cols
-                                                val cellHeight = size.height / puzzle.rows
-                                                val col = (change.position.x / cellWidth).toInt().coerceIn(0, puzzle.cols - 1)
-                                                val row = (change.position.y / cellHeight).toInt().coerceIn(0, puzzle.rows - 1)
-                                                viewModel.onCellTouchMove(row, col)
-                                            }
-                                        }
+                                .fillMaxWidth()
+                                .padding(vertical = 4.dp),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            puzzle.targetWords.forEach { targetWord ->
+                                val isFound = uiState.foundWords.contains(targetWord.word)
+                                val isHinted = uiState.highlightedHintWord?.word == targetWord.word
+
+                                Surface(
+                                    color = when {
+                                        isFound -> AccentGreen.copy(alpha = 0.2f)
+                                        isHinted -> AccentYellow.copy(alpha = 0.3f)
+                                        else -> NavySurface
+                                    },
+                                    shape = RoundedCornerShape(8.dp),
+                                    border = BorderStroke(1.dp, if (isFound) AccentGreen else if (isHinted) AccentYellow else CardBorderColor)
+                                ) {
+                                    Text(
+                                        text = targetWord.word,
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        fontWeight = FontWeight.Bold,
+                                        color = if (isFound) AccentGreen else if (isHinted) AccentYellow else TextPrimary,
+                                        textDecoration = if (isFound) TextDecoration.LineThrough else null,
+                                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)
                                     )
                                 }
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        // Grid Box with Drag Gestures
+                        PuzzivoCard(
+                            backgroundColor = NavySurfaceVariant,
+                            borderColor = CardBorderColor,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .aspectRatio(1f)
                         ) {
-                            Column(
-                                modifier = Modifier.fillMaxSize(),
-                                verticalArrangement = Arrangement.spacedBy(4.dp)
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .padding(8.dp)
+                                    .pointerInput(Unit) {
+                                        detectDragGestures(
+                                            onDragStart = { offset ->
+                                                val cellWidth = size.width / puzzle.cols
+                                                val cellHeight = size.height / puzzle.rows
+                                                val col = (offset.x / cellWidth).toInt()
+                                                val row = (offset.y / cellHeight).toInt()
+                                                viewModel.onCellTouchStart(row, col)
+                                            },
+                                            onDrag = { change, _ ->
+                                                val cellWidth = size.width / puzzle.cols
+                                                val cellHeight = size.height / puzzle.rows
+                                                val col = (change.position.x / cellWidth).toInt()
+                                                val row = (change.position.y / cellHeight).toInt()
+                                                viewModel.onCellTouchMove(row, col)
+                                            },
+                                            onDragEnd = {
+                                                viewModel.onCellTouchEnd()
+                                            }
+                                        )
+                                    }
                             ) {
-                                for (r in 0 until puzzle.rows) {
-                                    Row(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .weight(1f),
-                                        horizontalArrangement = Arrangement.spacedBy(4.dp)
-                                    ) {
-                                        for (c in 0 until puzzle.cols) {
-                                            val pos = CellPosition(r, c)
-                                            val isSelected = uiState.selectedCells.contains(pos)
-                                            val isFoundCell = uiState.foundCellPositions.contains(pos)
-                                            val isHinted = isHintedCell(pos, uiState.highlightedHintWord)
+                                Column(
+                                    modifier = Modifier.fillMaxSize(),
+                                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                                ) {
+                                    repeat(puzzle.rows) { row ->
+                                        Row(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .weight(1f),
+                                            horizontalArrangement = Arrangement.spacedBy(4.dp)
+                                        ) {
+                                            repeat(puzzle.cols) { col ->
+                                                val cellPos = CellPosition(row, col)
+                                                val isSelected = cellPos in uiState.selectedCells
+                                                val isFound = cellPos in uiState.foundCellPositions
+                                                val isFirstLetterHint = uiState.highlightedFirstLetterCell == cellPos
+                                                val char = puzzle.grid[row][col]
 
-                                            val char = puzzle.grid[r][c]
-
-                                             GridLetterCell(
-                                                 row = r,
-                                                 col = c,
-                                                 char = char,
-                                                isSelected = isSelected,
-                                                 isFound = isFoundCell,
-                                                 isHinted = isHinted,
-                                                  onTap = if (uiState.isGameComplete) null else ({ viewModel.onCellTap(r, c) }),
-                                                 modifier = Modifier
-                                                    .weight(1f)
-                                                    .fillMaxSize()
-                                            )
+                                                Surface(
+                                                    color = when {
+                                                        isFound -> AccentGreen.copy(alpha = 0.35f)
+                                                        isSelected -> AccentYellow.copy(alpha = 0.4f)
+                                                        isFirstLetterHint -> AccentMagenta.copy(alpha = 0.4f)
+                                                        else -> NavySurface
+                                                    },
+                                                    shape = RoundedCornerShape(6.dp),
+                                                    border = BorderStroke(
+                                                        1.dp,
+                                                        when {
+                                                            isFound -> AccentGreen
+                                                            isSelected -> AccentYellow
+                                                            isFirstLetterHint -> AccentMagenta
+                                                            else -> CardBorderColor
+                                                        }
+                                                    ),
+                                                    onClick = {
+                                                        if (context is Activity) {
+                                                            viewModel.onCellTap(row, col)
+                                                        }
+                                                    },
+                                                    modifier = Modifier
+                                                        .weight(1f)
+                                                        .fillMaxSize()
+                                                        .semantics {
+                                                            contentDescription = "Letter $char at row ${row + 1}, column ${col + 1}"
+                                                            role = Role.Button
+                                                        }
+                                                ) {
+                                                    Box(
+                                                        contentAlignment = Alignment.Center,
+                                                        modifier = Modifier.fillMaxSize()
+                                                    ) {
+                                                        Text(
+                                                            text = char.toString(),
+                                                            color = if (isFound || isSelected) TextPrimary else TextSecondary,
+                                                            fontWeight = FontWeight.Bold,
+                                                            fontSize = 18.sp
+                                                        )
+                                                    }
+                                                }
+                                            }
                                         }
                                     }
                                 }
-                            }
 
-                            if (uiState.selectedCells.size >= 2) {
-                                Canvas(modifier = Modifier.fillMaxSize()) {
-                                    val first = uiState.selectedCells.first()
-                                    val last = uiState.selectedCells.last()
-                                    val cellWidth = size.width / puzzle.cols
-                                    val cellHeight = size.height / puzzle.rows
-                                    drawLine(
-                                        color = AccentYellow,
-                                        start = Offset(
-                                            x = (first.col + 0.5f) * cellWidth,
-                                            y = (first.row + 0.5f) * cellHeight
-                                        ),
-                                        end = Offset(
-                                            x = (last.col + 0.5f) * cellWidth,
-                                            y = (last.row + 0.5f) * cellHeight
-                                        ),
-                                        strokeWidth = 6.dp.toPx(),
-                                        cap = StrokeCap.Round,
-                                        alpha = 0.65f
-                                    )
+                                // Draw selection line overlay if dragging
+                                if (uiState.selectedCells.size > 1) {
+                                    Canvas(modifier = Modifier.fillMaxSize()) {
+                                        val first = uiState.selectedCells.first()
+                                        val last = uiState.selectedCells.last()
+                                        val cellWidth = size.width / puzzle.cols
+                                        val cellHeight = size.height / puzzle.rows
+
+                                        drawLine(
+                                            color = AccentYellow,
+                                            start = Offset(
+                                                x = (first.col + 0.5f) * cellWidth,
+                                                y = (first.row + 0.5f) * cellHeight
+                                            ),
+                                            end = Offset(
+                                                x = (last.col + 0.5f) * cellWidth,
+                                                y = (last.row + 0.5f) * cellHeight
+                                            ),
+                                            strokeWidth = 6.dp.toPx(),
+                                            cap = StrokeCap.Round,
+                                            alpha = 0.65f
+                                        )
+                                    }
                                 }
                             }
                         }
+
+                        Text(
+                            text = stringResource(R.string.word_search_select_cells),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = TextSecondary,
+                            modifier = Modifier.padding(top = 8.dp)
+                        )
+
+                        Spacer(modifier = Modifier.height(20.dp))
+
+                        // Actions: Hint & Next Puzzle
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            SecondaryButton(
+                                text = "Hint (Letter)",
+                                enabled = !uiState.isGameComplete,
+                                onClick = {
+                                    if (context is Activity) {
+                                        viewModel.onRevealFirstLetterWithReward(context)
+                                    }
+                                },
+                                modifier = Modifier.weight(1f)
+                            )
+
+                            SecondaryButton(
+                                text = stringResource(R.string.hint_reveal_word),
+                                enabled = !uiState.isGameComplete,
+                                onClick = {
+                                    if (context is Activity) {
+                                        viewModel.onRevealWordWithReward(context)
+                                    }
+                                },
+                                modifier = Modifier.weight(1f)
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        PrimaryButton(
+                            text = stringResource(R.string.word_search_next_puzzle),
+                            enabled = uiState.isGameComplete,
+                            onClick = { viewModel.onNextPuzzle() },
+                            modifier = Modifier.fillMaxWidth()
+                        )
                     }
                 }
-
-                Text(
-                    text = stringResource(R.string.word_search_select_cells),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = TextSecondary,
-                    modifier = Modifier.padding(top = 8.dp)
-                )
-
-                Spacer(modifier = Modifier.height(20.dp))
-
-                // Actions: Hint & Next Puzzle
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    SecondaryButton(
-                        text = stringResource(R.string.hint_reveal_word),
-                        enabled = !uiState.hasUsedHint && !uiState.isGameComplete,
-                        onClick = {
-                            if (context is Activity) {
-                                viewModel.onRevealWordWithReward(context)
-                            }
-                        },
-                        modifier = Modifier.weight(1f)
-                    )
-
-                    PrimaryButton(
-                        text = stringResource(R.string.word_search_next_puzzle),
-                        enabled = uiState.isGameComplete,
-                        onClick = { viewModel.onNextPuzzle() },
-                        modifier = Modifier.weight(1f)
-                    )
-                }
-                Text(
-                    text = stringResource(R.string.hint_watch_ad),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = TextSecondary,
-                    modifier = Modifier.padding(top = 6.dp)
-                )
             }
 
+            if (uiState.isGameComplete) {
+                ConfettiParticleOverlay()
+            }
         }
     }
 
@@ -351,9 +370,9 @@ fun WordSearchScreen(
         )
     }
 
-    if (showInstructions) {
+    if (showInstructions || shouldShowInstructions) {
         InstructionDialog(
-            title = stringResource(R.string.word_search_rules_title),
+            title = stringResource(R.string.word_search_title),
             description = stringResource(R.string.word_search_rules_description),
             onDismiss = {
                 showInstructions = false
@@ -365,100 +384,11 @@ fun WordSearchScreen(
     if (uiState.isGameComplete) {
         ResultDialog(
             title = stringResource(R.string.word_search_complete),
-            scoreText = stringResource(R.string.word_search_complete_score),
-            isNewBest = false,
-            bestScoreText = stringResource(R.string.word_search_completed_label),
-            detailsText = pluralStringResource(R.plurals.word_search_complete_detail, uiState.foundWords.size, uiState.foundWords.size),
+            scoreText = "Score: ${uiState.score}",
+            isNewBest = uiState.score > 0,
+            bestScoreText = "Score: ${uiState.score}",
             onReplayClick = { viewModel.onNextPuzzle() },
             onHomeClick = onBackClick
         )
     }
-}
-
-@Composable
-fun GridLetterCell(
-    modifier: Modifier = Modifier,
-    row: Int,
-    col: Int,
-    char: Char,
-    isSelected: Boolean,
-    isFound: Boolean,
-    isHinted: Boolean,
-    onTap: (() -> Unit)? = null,
-) {
-    val bgColor = when {
-        isSelected -> AccentYellow.copy(alpha = 0.5f)
-        isFound -> AccentGreen.copy(alpha = 0.35f)
-        isHinted -> AccentMagenta.copy(alpha = 0.4f)
-        else -> NavySurface
-    }
-
-    val textColor = when {
-        isSelected -> NavyBackground
-        isFound -> AccentGreen
-        isHinted -> AccentMagenta
-        else -> TextPrimary
-    }
-
-    val status = when {
-        isSelected -> stringResource(R.string.word_search_cell_selected)
-        isFound -> stringResource(R.string.word_search_cell_found)
-        isHinted -> stringResource(R.string.word_search_cell_hinted)
-        else -> stringResource(R.string.word_search_cell_unselected)
-    }
-    val cellDescription = stringResource(
-        R.string.word_search_cell_description,
-        row + 1,
-        col + 1,
-        char.toString(),
-        status
-    )
-
-    Surface(
-        color = bgColor,
-        shape = RoundedCornerShape(6.dp),
-        border = if (isSelected || isFound || isHinted) BorderStroke(1.dp, textColor) else null,
-        modifier = modifier
-            .clickable(
-                enabled = onTap != null,
-                role = Role.Button,
-                onClick = { onTap?.invoke() }
-            )
-            .semantics {
-                contentDescription = cellDescription
-            }
-    ) {
-        Box(
-            contentAlignment = Alignment.Center,
-            modifier = Modifier.fillMaxSize()
-        ) {
-            Text(
-                text = "$char",
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Bold,
-                color = textColor
-            )
-        }
-    }
-}
-
-private fun isHintedCell(pos: CellPosition, hintWord: TargetWord?): Boolean {
-    if (hintWord == null || hintWord.startRow == -1) return false
-
-    val dRow = hintWord.endRow - hintWord.startRow
-    val dCol = hintWord.endCol - hintWord.startCol
-    val steps = maxOf(kotlin.math.abs(dRow), kotlin.math.abs(dCol))
-    if (steps == 0) return pos.row == hintWord.startRow && pos.col == hintWord.startCol
-
-    val stepRow = if (dRow == 0) 0 else dRow / steps
-    val stepCol = if (dCol == 0) 0 else dCol / steps
-
-    var r = hintWord.startRow
-    var c = hintWord.startCol
-    for (i in 0..steps) {
-        if (pos.row == r && pos.col == c) return true
-        r += stepRow
-        c += stepCol
-    }
-    return false
 }

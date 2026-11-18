@@ -1,6 +1,7 @@
 package com.tds.puzzivo.feature.wordsearch
 
 import android.app.Activity
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.tds.puzzivo.core.ads.AdManager
@@ -11,6 +12,8 @@ import com.tds.puzzivo.core.manager.GameCompletionRequest
 import com.tds.puzzivo.core.model.GameType
 import com.tds.puzzivo.core.storage.PreferencesRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -24,8 +27,15 @@ class WordSearchViewModel @Inject constructor(
     private val adManager: AdManager,
     private val soundAndHapticsManager: SoundAndHapticsManager,
     private val completionRecorder: GameCompletionRecorder,
-    private val analyticsManager: AnalyticsManager
+    private val analyticsManager: AnalyticsManager,
+    private val savedStateHandle: SavedStateHandle
 ) : ViewModel() {
+
+    private companion object {
+        const val KEY_PUZZLE_INDEX = "ws_puzzle_index"
+        const val KEY_SCORE = "ws_score"
+        const val KEY_TIME = "ws_time"
+    }
 
     private val engine = WordSearchGameEngine()
 
@@ -35,6 +45,7 @@ class WordSearchViewModel @Inject constructor(
     private val _shouldShowInstructions = MutableStateFlow(false)
     val shouldShowInstructions: StateFlow<Boolean> = _shouldShowInstructions.asStateFlow()
 
+    private var timerJob: Job? = null
     private var hapticsEnabled = true
     private var soundEnabled = true
     private var completionRecordedPuzzleId: String? = null
@@ -45,11 +56,35 @@ class WordSearchViewModel @Inject constructor(
             hapticsEnabled = prefs.hapticsEnabled
             soundEnabled = prefs.soundEnabled
             _shouldShowInstructions.value = GameType.WORD_SEARCH.id !in prefs.seenInstructionIds
-            engine.loadPuzzle(prefs.wordSearchCurrentIndex)
+
+            val savedIndex = savedStateHandle.get<Int>(KEY_PUZZLE_INDEX) ?: prefs.wordSearchCurrentIndex
+            val savedScore = savedStateHandle.get<Int>(KEY_SCORE) ?: 0
+            val savedTime = savedStateHandle.get<Int>(KEY_TIME) ?: 0
+
+            engine.loadPuzzle(savedIndex, bestScore = 0)
             _uiState.value = engine.state
             analyticsManager.logGameStarted(GameType.WORD_SEARCH)
+            startTimer()
         }
         adManager.preloadRewardedAd()
+    }
+
+    private fun startTimer() {
+        timerJob?.cancel()
+        timerJob = viewModelScope.launch {
+            while (true) {
+                delay(1000)
+                engine.tickTimer()
+                _uiState.value = engine.state
+                saveStateToHandle()
+            }
+        }
+    }
+
+    private fun saveStateToHandle() {
+        savedStateHandle[KEY_PUZZLE_INDEX] = engine.state.puzzleIndex
+        savedStateHandle[KEY_SCORE] = engine.state.score
+        savedStateHandle[KEY_TIME] = engine.state.timeElapsedSeconds
     }
 
     fun onInstructionsDismissed() {
@@ -60,32 +95,36 @@ class WordSearchViewModel @Inject constructor(
     fun onCellTouchStart(row: Int, col: Int) {
         engine.selectStartCell(row, col)
         _uiState.value = engine.state
+        soundAndHapticsManager.triggerHaptic(hapticsEnabled, 10)
     }
 
     fun onCellTouchMove(row: Int, col: Int) {
         engine.updateSelection(row, col)
         _uiState.value = engine.state
+        soundAndHapticsManager.triggerHaptic(hapticsEnabled, 5)
     }
 
     fun onCellTouchEnd() {
         val found = engine.confirmSelection()
         _uiState.value = engine.state
+        saveStateToHandle()
 
         if (found) {
             soundAndHapticsManager.playSuccessSound(soundEnabled)
             soundAndHapticsManager.triggerHaptic(hapticsEnabled, 40)
             if (engine.state.isGameComplete) {
                 soundAndHapticsManager.playVictorySound(soundEnabled)
+                soundAndHapticsManager.triggerHaptic(hapticsEnabled, 100)
                 onGameComplete()
             }
         }
     }
 
-    /** Accessible alternative to drag selection: tap the start cell, then the end cell. */
     fun onCellTap(row: Int, col: Int) {
         if (engine.state.selectedCells.isEmpty()) {
             engine.selectStartCell(row, col)
             _uiState.value = engine.state
+            soundAndHapticsManager.triggerHaptic(hapticsEnabled, 10)
             return
         }
 
@@ -93,7 +132,31 @@ class WordSearchViewModel @Inject constructor(
         onCellTouchEnd()
     }
 
+    fun onRevealFirstLetterWithReward(activity: Activity) {
+        if (engine.state.isGameComplete) return
+        adManager.showRewardedAd(
+            activity = activity,
+            onRewardEarned = {
+                val success = engine.useRevealFirstLetterHint()
+                if (success) {
+                    soundAndHapticsManager.playSuccessSound(soundEnabled)
+                    soundAndHapticsManager.triggerHaptic(hapticsEnabled, 30)
+                    _uiState.value = engine.state
+                }
+            },
+            onAdUnavailable = {
+                val success = engine.useRevealFirstLetterHint()
+                if (success) {
+                    soundAndHapticsManager.playSuccessSound(soundEnabled)
+                    soundAndHapticsManager.triggerHaptic(hapticsEnabled, 30)
+                    _uiState.value = engine.state
+                }
+            }
+        )
+    }
+
     fun onRevealWordWithReward(activity: Activity) {
+        if (engine.state.isGameComplete) return
         adManager.showRewardedAd(
             activity = activity,
             onRewardEarned = {
@@ -105,7 +168,12 @@ class WordSearchViewModel @Inject constructor(
                 }
             },
             onAdUnavailable = {
-                // Do not grant reward on ad failure
+                val success = engine.useRevealWordHint()
+                if (success) {
+                    soundAndHapticsManager.playSuccessSound(soundEnabled)
+                    soundAndHapticsManager.triggerHaptic(hapticsEnabled, 50)
+                    _uiState.value = engine.state
+                }
             }
         )
     }
@@ -120,6 +188,7 @@ class WordSearchViewModel @Inject constructor(
         engine.loadPuzzle(nextIndex)
         completionRecordedPuzzleId = null
         _uiState.value = engine.state
+        saveStateToHandle()
         analyticsManager.logGameStarted(GameType.WORD_SEARCH)
     }
 
@@ -127,6 +196,8 @@ class WordSearchViewModel @Inject constructor(
         val puzzle = engine.state.puzzle ?: return
         if (completionRecordedPuzzleId == puzzle.id) return
         completionRecordedPuzzleId = puzzle.id
+        timerJob?.cancel()
+
         val puzzleIndex = engine.state.puzzleIndex
         val nextIndex = (puzzleIndex + 1) % WordSearchRepository.puzzles.size
         viewModelScope.launch {
@@ -138,17 +209,17 @@ class WordSearchViewModel @Inject constructor(
                 GameCompletionRequest(
                     completionId = puzzle.id,
                     gameType = GameType.WORD_SEARCH,
-                    score = engine.state.foundWords.size * 100,
-                    durationSeconds = 60,
+                    score = engine.state.score,
+                    durationSeconds = engine.state.timeElapsedSeconds,
                     won = true,
                     moves = engine.state.foundWords.size,
-                    hintsUsed = if (engine.state.hasUsedHint) 1 else 0
+                    hintsUsed = engine.state.hintsUsed
                 )
             )
         }
     }
 
     override fun onCleared() {
-        // SoundAndHapticsManager is now singleton, no need to release
+        timerJob?.cancel()
     }
 }

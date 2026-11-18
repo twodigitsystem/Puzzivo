@@ -3,6 +3,7 @@ package com.tds.puzzivo
 import android.app.Application
 import com.google.android.libraries.ads.mobile.sdk.MobileAds
 import com.google.android.libraries.ads.mobile.sdk.initialization.InitializationConfig
+import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.tds.puzzivo.core.ads.AdManager
 import com.tds.puzzivo.core.ads.AdsConsentManager
 import com.tds.puzzivo.core.manager.GameCompletionRecorder
@@ -44,6 +45,12 @@ class PuzzivoApplication : Application() {
 
     private val _adsReadyFlow = MutableStateFlow(false)
     val adsReadyFlow: StateFlow<Boolean> = _adsReadyFlow.asStateFlow()
+
+    override fun onCreate() {
+        super.onCreate()
+        // Enable Crashlytics collection strictly for release builds (disable in debug development)
+        FirebaseCrashlytics.getInstance().setCrashlyticsCollectionEnabled(!BuildConfig.DEBUG)
+    }
 
     fun initializeAds(activity: android.app.Activity) {
         if (adsInitializationStarted || adsReady) return

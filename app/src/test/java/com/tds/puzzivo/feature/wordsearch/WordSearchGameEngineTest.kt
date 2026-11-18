@@ -146,7 +146,7 @@ class WordSearchGameEngineTest {
     @Test
     fun `hint highlights one unfound word and cannot be reused`() {
         assertTrue(engine.useRevealWordHint())
-        assertTrue(engine.state.hasUsedHint)
+        assertTrue(engine.state.hintsUsed > 0)
         assertNotNull(engine.state.highlightedHintWord)
         assertFalse(engine.useRevealWordHint())
     }

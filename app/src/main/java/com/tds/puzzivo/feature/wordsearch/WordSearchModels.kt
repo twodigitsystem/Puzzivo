@@ -29,6 +29,10 @@ data class WordSearchState(
     val foundCellPositions: Set<CellPosition> = emptySet(),
     val selectedCells: List<CellPosition> = emptyList(),
     val isGameComplete: Boolean = false,
-    val hasUsedHint: Boolean = false,
-    val highlightedHintWord: TargetWord? = null
+    val hintsUsed: Int = 0,
+    val highlightedHintWord: TargetWord? = null,
+    val highlightedFirstLetterCell: CellPosition? = null,
+    val score: Int = 0,
+    val bestScore: Int = 0,
+    val timeElapsedSeconds: Int = 0
 )
